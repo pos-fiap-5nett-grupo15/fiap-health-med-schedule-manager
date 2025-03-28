@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.3" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Application\Fiap.Health.Med.Schedule.Manager.Application.csproj" />
     <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Infrastructure\Fiap.Health.Med.Schedule.Manager.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
