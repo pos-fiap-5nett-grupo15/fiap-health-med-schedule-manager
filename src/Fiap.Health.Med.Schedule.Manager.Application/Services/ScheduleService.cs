@@ -18,4 +18,9 @@ public class ScheduleService : IScheduleService
     {
         return await this.UnitOfWork.ScheduleRepository.GetAsync(cancellationToken);
     }
+
+    public Task CreateSchedule(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }
