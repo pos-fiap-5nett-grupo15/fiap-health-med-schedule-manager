@@ -1,5 +1,6 @@
 ﻿
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
+using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
 
@@ -7,33 +8,59 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
 {
     public class ScheduleServiceTests
     {
-        private IScheduleService _target;
+        private Mock<IUnitOfWork> _unitOfWorkMock;
+        public IScheduleService _target;
         public ScheduleServiceTests()
         {
-            this._target = new Mock<IScheduleService>().Object;
+            this._unitOfWorkMock = new Mock<IUnitOfWork>();
+            this._target = new ScheduleService(this._unitOfWorkMock.Object);
         }
 
         [Fact]
         public async Task CreateSchedule_WhenUsingCorrectTimeRange_ShouldPass()
         {
-            //set
+            //setup
             var model = ModelHelper.CreateSchedule();
 
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.CreateScheduleAsync(It.IsAny<Domain.Models.Schedule>(),CancellationToken.None)).Returns(Task.CompletedTask);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(),CancellationToken.None)).ReturnsAsync(new List<Domain.Models.Schedule>());
+
             //act
-            var act = async () => await this._target.CreateSchedule(model,CancellationToken.None);
+            var act = async () => await this._target.CreateScheduleAsync(model,CancellationToken.None);
 
             //assert
             await act.Should().NotThrowAsync<Exception>();
         }
 
-        [Fact]
-        public async Task CreateSchedule_WhenUsingOverlapedTimeRange_ShouldThrowInvalidOperationException()
+        [Theory]
+        [InlineData(60, 0)]
+        [InlineData(-60, 0)]
+        [InlineData(30, 0)]
+        [InlineData(-30, 0)]
+        public async Task CreateSchedule_WhenUsingOverlappedTimeRange_ShouldThrowInvalidOperationException(int minutes, int seconds)
         {
             //set
             var model = ModelHelper.CreateSchedule();
 
+            var dbModels = new List<Domain.Models.Schedule>() 
+            { 
+                ModelHelper.CreateSchedule()
+                           .SetScheduleTime(model.ScheduleTime)
+                           .Displace(new TimeSpan(0, minutes, seconds))
+            };
+
+
+            this._unitOfWorkMock
+                .Setup(x => 
+                    x.ScheduleRepository.CreateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), CancellationToken.None))
+                .Returns(Task.CompletedTask);
+
+            this._unitOfWorkMock
+                .Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(), CancellationToken.None))
+                .ReturnsAsync(dbModels);
+
             //act
-            var act = async () => await this._target.CreateSchedule(model, CancellationToken.None);
+            var act = async () => await this._target.CreateScheduleAsync(model, CancellationToken.None);
 
             //assert
             await act.Should().ThrowAsync<InvalidOperationException>();
@@ -45,8 +72,24 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             //set
             var model = ModelHelper.CreateSchedule();
 
+            var dbModels = new List<Domain.Models.Schedule>()
+            {
+                ModelHelper.CreateSchedule()
+                           .SetScheduleTime(model.ScheduleTime)
+                           .Displace(new TimeSpan(-1, 0, 0))
+            };
+
+            this._unitOfWorkMock
+                .Setup(x =>
+                    x.ScheduleRepository.CreateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), CancellationToken.None))
+                .Returns(Task.CompletedTask);
+
+            this._unitOfWorkMock
+                .Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(), CancellationToken.None))
+                .ReturnsAsync(dbModels);
+
             //act
-            var act = async () => await this._target.CreateSchedule(model, CancellationToken.None);
+            var act = async () => await this._target.CreateScheduleAsync(model, CancellationToken.None);
 
             //assert
             await act.Should().ThrowAsync<InvalidOperationException>();
@@ -57,7 +100,29 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
     {
         public static Domain.Models.Schedule CreateSchedule()
         {
-            var model = new Domain.Models.Schedule();
+            var date = DateTime.Now;
+            var model = new Domain.Models.Schedule()
+            {
+                Id = 1,
+                DoctorId = 1,
+                PatientId = 1,
+                IsActive = true,
+                CreatedAt = date,
+                UpdatedAt = date,
+                ScheduleTime = date + new TimeSpan(days:7,0,0,0),
+                IsConfirmed = false
+            };
+            return model;
+        }
+
+        public static Domain.Models.Schedule Displace(this Domain.Models.Schedule model, TimeSpan displacement) {
+            model.ScheduleTime += displacement;
+            return model;
+        }
+
+        public static Domain.Models.Schedule SetScheduleTime(this Domain.Models.Schedule model, DateTime time)
+        {
+            model.ScheduleTime = time;
             return model;
         }
     }

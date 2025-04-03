@@ -1,4 +1,5 @@
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
+using Microsoft.VisualBasic;
 
 namespace Fiap.Health.Med.Schedule.Manager.Application.Services;
 
@@ -19,8 +20,25 @@ public class ScheduleService : IScheduleService
         return await this.UnitOfWork.ScheduleRepository.GetAsync(cancellationToken);
     }
 
-    public Task CreateSchedule(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    public async Task CreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if(this.IsPassedTime(schedule,DateTime.Now) || this.IsPassedTime(schedule,DateTime.Now))
+            throw new InvalidOperationException();
+
+        var dbModels = await this.GetScheduleByAsync(schedule.DoctorId, schedule.ScheduleTime, cancellationToken);
+
+        var hasAnyOverlap = dbModels.Select(x => schedule.IsOverlappedBy(x)).Any(x => x == true);
+        if (hasAnyOverlap)
+            throw new InvalidOperationException();
+
+        await this.UnitOfWork.ScheduleRepository.CreateScheduleAsync(schedule, cancellationToken);
+    }
+
+    private bool IsPassedTime(Domain.Models.Schedule schedule, DateTime reference)
+        => schedule.ScheduleTime <= reference;
+
+    private async Task<IEnumerable<Domain.Models.Schedule>> GetScheduleByAsync(int doctorId, DateTime scheduleTime, CancellationToken cancellationToken)
+    {
+        return await this.UnitOfWork.ScheduleRepository.GetScheduleByDoctorIdAsync(doctorId, cancellationToken);
     }
 }

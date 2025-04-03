@@ -12,4 +12,23 @@ public class Schedule
     public string DoctorName { get; set; }
     public string PatientName { get; set; }
     public bool IsConfirmed { get; set; }
+
+    public bool IsOverlappedBy(Schedule dbModel)
+    {
+        if(dbModel == null) throw new ArgumentNullException(nameof(dbModel));
+
+
+        if(
+            (
+                this.ScheduleTime <= dbModel.ScheduleTime && 
+                dbModel.ScheduleTime <= this.ScheduleTime + new TimeSpan(1, 0, 0)
+            )
+            ||
+            (
+                this.ScheduleTime <= dbModel.ScheduleTime + new TimeSpan(1, 0, 0) && 
+                dbModel.ScheduleTime + new TimeSpan(1, 0, 0) <= this.ScheduleTime + new TimeSpan(1, 0, 0)
+            )
+        ) return true;
+        return false;
+    }
 }

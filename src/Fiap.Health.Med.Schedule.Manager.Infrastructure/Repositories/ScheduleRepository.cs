@@ -14,10 +14,20 @@ public class ScheduleRepository : IScheduleRepository
         this._database = database;
     }
 
+    public Task CreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<IEnumerable<Domain.Models.Schedule>> GetAsync(CancellationToken cancellationToken)
     {
         var query = @"SELECT * FROM Schedule.Schedule";
 
         return await _database.Connection.QueryAsync<Domain.Models.Schedule>(query);
+    }
+
+    public Task<IEnumerable<Domain.Models.Schedule>> GetScheduleByDoctorIdAsync(int doctorId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }
