@@ -21,8 +21,9 @@ internal class Startup
         services.AddControllers();
         services.AddDataServices();
         services.AddServices();
+        services.AddValidators();
     }
-    
+
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
     {
         // Configure the HTTP request pipeline.

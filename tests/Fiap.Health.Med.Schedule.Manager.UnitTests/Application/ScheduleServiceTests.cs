@@ -1,19 +1,23 @@
 ﻿
+using Fiap.Health.Med.Schedule.Manager.Application.DTOs.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using FluentAssertions;
+using FluentValidation;
 using Moq;
 
 namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
 {
     public class ScheduleServiceTests
     {
+        private Mock<IValidator<UpdateScheduleRequestDto>> _updateScheduleRequestValidatorMock;
         private Mock<IUnitOfWork> _unitOfWorkMock;
         public IScheduleService _target;
         public ScheduleServiceTests()
         {
             this._unitOfWorkMock = new Mock<IUnitOfWork>();
-            this._target = new ScheduleService(this._unitOfWorkMock.Object);
+            this._updateScheduleRequestValidatorMock = new Mock<IValidator<UpdateScheduleRequestDto>>();
+            this._target = new ScheduleService(this._unitOfWorkMock.Object, this._updateScheduleRequestValidatorMock.Object);
         }
 
         [Fact]
@@ -42,8 +46,8 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             //set
             var model = ModelHelper.CreateSchedule();
 
-            var dbModels = new List<Domain.Models.Schedule>() 
-            { 
+            var dbModels = new List<Domain.Models.Schedule>()
+            {
                 ModelHelper.CreateSchedule()
                            .SetScheduleTime(model.ScheduleTime)
                            .Displace(new TimeSpan(0, minutes, seconds))
@@ -51,7 +55,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
 
 
             this._unitOfWorkMock
-                .Setup(x => 
+                .Setup(x =>
                     x.ScheduleRepository.CreateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), CancellationToken.None))
                 .Returns(Task.CompletedTask);
 

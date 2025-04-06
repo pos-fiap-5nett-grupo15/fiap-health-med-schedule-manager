@@ -30,4 +30,20 @@ public class ScheduleRepository : IScheduleRepository
     {
         throw new NotImplementedException();
     }
+
+    public async Task<Domain.Models.Schedule?> GetScheduleByIdAsync(long scheduleId, CancellationToken cancellationToken)
+    {
+        var query = @"SELECT * FROM Schedule.Schedule WHERE Id = @Id";
+        return await _database.Connection.QueryFirstOrDefaultAsync<Domain.Models.Schedule?>(query, new { Id = scheduleId });
+    }
+
+    public async Task<int> UpdateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    {
+        var query = @$"UPDATE Schedule.Schedule 
+                       SET
+                        {nameof(Domain.Models.Schedule.IsActive)} = @IsActive
+                        {nameof(Domain.Models.Schedule.ScheduleTime)} = @ScheduleTime
+                       WHERE Id = @Id";
+        return await _database.Connection.ExecuteAsync(query, schedule);
+    }
 }

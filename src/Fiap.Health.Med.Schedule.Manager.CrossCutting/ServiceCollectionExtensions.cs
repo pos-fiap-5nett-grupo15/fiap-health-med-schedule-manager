@@ -1,8 +1,11 @@
+using Fiap.Health.Med.Schedule.Manager.Application.DTOs.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
+using Fiap.Health.Med.Schedule.Manager.Application.Validators.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.Migrations;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.UnitOfWork;
 using FluentMigrator.Runner;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,7 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }
-    
+
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddScoped<IScheduleService, ScheduleService>();
@@ -32,12 +35,17 @@ public static class ServiceCollectionExtensions
         }
         return services;
     }
+    public static IServiceCollection AddValidators(this IServiceCollection services)
+    {
+        services.AddScoped<IValidator<UpdateScheduleRequestDto>, UpdateScheduleValidator>();
+        return services;
+    }
     private static ServiceProvider BuildFluentMigrationServiceProvider(IServiceCollection sc, IConfiguration configuration)
     {
         var strConnection = configuration.GetConnectionString("DatabaseDllConnection");
         if (string.IsNullOrEmpty(strConnection))
             throw new InvalidOperationException("DatabaseDllConnection is not defined.");
-            
+
         return  new ServiceCollection().AddFluentMigratorCore()
             .ConfigureRunner( rb => 
                 rb.AddSqlServer()
