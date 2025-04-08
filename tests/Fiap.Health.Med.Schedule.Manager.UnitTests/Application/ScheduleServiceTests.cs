@@ -1,5 +1,6 @@
 ﻿
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
+using Fiap.Health.Med.Schedule.Manager.Domain.Enum;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
@@ -106,11 +107,10 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                 Id = 1,
                 DoctorId = 1,
                 PatientId = 1,
-                IsActive = true,
                 CreatedAt = date,
                 UpdatedAt = date,
                 ScheduleTime = date + new TimeSpan(days:7,0,0,0),
-                IsConfirmed = false
+                Status = EScheduleStatus.AVAILABLE
             };
             return model;
         }
