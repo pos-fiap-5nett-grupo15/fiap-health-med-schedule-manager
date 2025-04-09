@@ -23,8 +23,16 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             //setup
             var model = ModelHelper.CreateSchedule();
 
-            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.CreateScheduleAsync(It.IsAny<Domain.Models.Schedule>(),CancellationToken.None)).Returns(Task.CompletedTask);
-            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(),CancellationToken.None)).ReturnsAsync(new List<Domain.Models.Schedule>());
+            this._unitOfWorkMock
+                .Setup(x => x.ScheduleRepository.CreateScheduleAsync(
+                    It.IsAny<Domain.Models.Schedule>(),
+                    CancellationToken.None))
+                .ReturnsAsync(() => true);
+            this._unitOfWorkMock
+                .Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(
+                    It.IsAny<int>(),
+                    CancellationToken.None))
+                .ReturnsAsync(new List<Domain.Models.Schedule>());
 
             //act
             var act = async () => await this._target.CreateScheduleAsync(model,CancellationToken.None);
@@ -54,7 +62,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             this._unitOfWorkMock
                 .Setup(x => 
                     x.ScheduleRepository.CreateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), CancellationToken.None))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(() => true);
 
             this._unitOfWorkMock
                 .Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(), CancellationToken.None))
@@ -83,7 +91,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             this._unitOfWorkMock
                 .Setup(x =>
                     x.ScheduleRepository.CreateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), CancellationToken.None))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(() => true);
 
             this._unitOfWorkMock
                 .Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(), CancellationToken.None))
