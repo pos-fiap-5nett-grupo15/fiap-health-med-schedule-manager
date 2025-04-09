@@ -22,7 +22,7 @@ public class ScheduleService : IScheduleService
 
     public async Task CreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
     {
-        if (this.IsPassedTime(schedule, DateTime.Now) || this.IsPassedTime(schedule, DateTime.Now))
+        if (IsPassedTime(schedule, DateTime.Now) || IsPassedTime(schedule, DateTime.Now))
             throw new InvalidOperationException();
 
         var dbModels = await this.GetScheduleByAsync(schedule.DoctorId, schedule.ScheduleTime, cancellationToken);
@@ -32,14 +32,6 @@ public class ScheduleService : IScheduleService
             throw new InvalidOperationException();
 
         await this.UnitOfWork.ScheduleRepository.CreateScheduleAsync(schedule, cancellationToken);
-    }
-
-    private bool IsPassedTime(Domain.Models.Schedule schedule, DateTime reference)
-        => schedule.ScheduleTime <= reference;
-
-    private async Task<IEnumerable<Domain.Models.Schedule>> GetScheduleByAsync(int doctorId, DateTime scheduleTime, CancellationToken cancellationToken)
-    {
-        return await this.UnitOfWork.ScheduleRepository.GetScheduleByDoctorIdAsync(doctorId, cancellationToken);
     }
 
     public async Task<Result> RefuseScheduleAsync(long scheduleId, int doctorId, CancellationToken ct)
@@ -56,4 +48,14 @@ public class ScheduleService : IScheduleService
         
         return Result.Success(HttpStatusCode.NoContent);
     }
+
+    #region Private methods:
+    private static bool IsPassedTime(Domain.Models.Schedule schedule, DateTime reference)
+        => schedule.ScheduleTime <= reference;
+
+    private async Task<IEnumerable<Domain.Models.Schedule>> GetScheduleByAsync(int doctorId, DateTime scheduleTime, CancellationToken cancellationToken)
+    {
+        return await this.UnitOfWork.ScheduleRepository.GetScheduleByDoctorIdAsync(doctorId, cancellationToken);
+    }
+    #endregion Private methods.
 }
