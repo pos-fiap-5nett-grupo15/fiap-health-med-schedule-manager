@@ -10,15 +10,17 @@ public class ScheduleRepository : IScheduleRepository
 {
     private readonly IHealthDatabase _database;
 
-
     public ScheduleRepository(IHealthDatabase database)
     {
         this._database = database;
     }
 
-    public Task CreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    public async Task<bool> CreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var query = @"INSERT INTO Schedule.Schedule (DoctorId, PatientId, CreatedAt, UpdatedAt, ScheduleTime, Status)
+                      VALUES (@DoctorId, @PatientId, @CreatedAt, @UpdatedAt, @ScheduleTime, @Status)";
+
+        return (await _database.Connection.ExecuteScalarAsync<int>(query, schedule)) >0;
     }
 
     public async Task<IEnumerable<Domain.Models.Schedule>> GetAsync(CancellationToken cancellationToken)
@@ -38,6 +40,7 @@ public class ScheduleRepository : IScheduleRepository
         try
         {
             var query = @$"SELECT
+                                DoctorId, PatientId, CreatedAt, UpdatedAt, ScheduleTime, Status
                             FROM Schedule.Schedule 
                             WHERE Id = {scheduleId}
                             AND {nameof(Domain.Models.Schedule.DoctorId)} = {doctorId}";
