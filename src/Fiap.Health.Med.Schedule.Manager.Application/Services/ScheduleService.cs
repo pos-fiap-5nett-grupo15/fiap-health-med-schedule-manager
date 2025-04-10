@@ -1,19 +1,19 @@
+using Fiap.Health.Med.Schedule.Manager.Application.Common;
+using Fiap.Health.Med.Schedule.Manager.Domain.Enum;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
-using Microsoft.VisualBasic;
+using System.Net;
 
 namespace Fiap.Health.Med.Schedule.Manager.Application.Services;
 
 public class ScheduleService : IScheduleService
 {
     public IUnitOfWork UnitOfWork { get; set; }
-    
-    
+
+
     public ScheduleService(IUnitOfWork unitOfWork)
     {
         this.UnitOfWork = unitOfWork;
     }
-
-
 
     public async Task<IEnumerable<Domain.Models.Schedule>> GetAsync(CancellationToken cancellationToken)
     {
@@ -22,7 +22,7 @@ public class ScheduleService : IScheduleService
 
     public async Task CreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
     {
-        if(this.IsPassedTime(schedule,DateTime.Now) || this.IsPassedTime(schedule,DateTime.Now))
+        if (IsPassedTime(schedule, DateTime.Now) || IsPassedTime(schedule, DateTime.Now))
             throw new InvalidOperationException();
 
         var dbModels = await this.GetScheduleByAsync(schedule.DoctorId, schedule.ScheduleTime, cancellationToken);
@@ -34,11 +34,28 @@ public class ScheduleService : IScheduleService
         await this.UnitOfWork.ScheduleRepository.CreateScheduleAsync(schedule, cancellationToken);
     }
 
-    private bool IsPassedTime(Domain.Models.Schedule schedule, DateTime reference)
+    public async Task<Result> RefuseScheduleAsync(long scheduleId, int doctorId, CancellationToken ct)
+    {
+        (var schedule, var getScheduleError) = await this.UnitOfWork.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, ct);
+        if (!string.IsNullOrWhiteSpace(getScheduleError))
+            return Result.Fail(HttpStatusCode.UnprocessableContent, getScheduleError);
+
+        if (schedule is null)
+            return Result.Fail(HttpStatusCode.NotFound, "Agendamento não encontrado.");
+
+        if (await this.UnitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.REFUSED, ct) is (var success, var updateError) && !success)
+            return Result.Fail(HttpStatusCode.UnprocessableContent, !string.IsNullOrWhiteSpace(updateError) ? updateError : "Um erro ocorreu ao atualizar status do Agendamento.");
+        
+        return Result.Success(HttpStatusCode.NoContent);
+    }
+
+    #region Private methods:
+    private static bool IsPassedTime(Domain.Models.Schedule schedule, DateTime reference)
         => schedule.ScheduleTime <= reference;
 
     private async Task<IEnumerable<Domain.Models.Schedule>> GetScheduleByAsync(int doctorId, DateTime scheduleTime, CancellationToken cancellationToken)
     {
         return await this.UnitOfWork.ScheduleRepository.GetScheduleByDoctorIdAsync(doctorId, cancellationToken);
     }
+    #endregion Private methods.
 }

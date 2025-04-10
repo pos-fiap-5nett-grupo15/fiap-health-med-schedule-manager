@@ -28,5 +28,15 @@ public class ScheduleController : ControllerBase
         await this.ScheduleService.CreateScheduleAsync(schedule, cancellationToken);
         return Ok();
     }
-    
+
+    [HttpPatch("refuse/{scheduleId}/{doctorId}")]
+    public async Task<IActionResult> RefuseScheduleAsync(
+        [FromRoute] long scheduleId,
+        [FromRoute] int doctorId,
+        CancellationToken ct)
+    {
+        var result = await this.ScheduleService.RefuseScheduleAsync(scheduleId, doctorId, ct);
+
+        return StatusCode((int) result.StatusCode, result.Errors);
+    }
 }
