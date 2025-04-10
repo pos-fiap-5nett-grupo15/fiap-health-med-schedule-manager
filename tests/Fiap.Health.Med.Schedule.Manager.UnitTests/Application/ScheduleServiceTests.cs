@@ -26,11 +26,11 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             //setup
             var model = ModelHelper.CreateSchedule();
 
-            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.CreateScheduleAsync(It.IsAny<Domain.Models.Schedule>(),CancellationToken.None)).Returns(Task.CompletedTask);
-            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(),CancellationToken.None)).ReturnsAsync(new List<Domain.Models.Schedule>());
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.CreateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), CancellationToken.None)).Returns(Task.CompletedTask);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(), CancellationToken.None)).ReturnsAsync(new List<Domain.Models.Schedule>());
 
             //act
-            var act = async () => await this._target.CreateScheduleAsync(model,CancellationToken.None);
+            var act = async () => await this._target.CreateScheduleAsync(model, CancellationToken.None);
 
             //assert
             await act.Should().NotThrowAsync<Exception>();
@@ -98,6 +98,113 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             //assert
             await act.Should().ThrowAsync<InvalidOperationException>();
         }
+
+
+        [Fact]
+        public async Task UpdateSchedule_WhenScheduleDoesNotExist_ShouldReturnFailureWithErrorMessage()
+        {
+            //set
+            var updateScheduleRequestDto = new UpdateScheduleRequestDto()
+            {
+                Id = 1,
+                IsActive = true,
+                ScheduleTime = DateTime.Now
+            };
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), CancellationToken.None)).ReturnsAsync((Domain.Models.Schedule?)null);
+            this._updateScheduleRequestValidatorMock.Setup(v => v.ValidateAsync(updateScheduleRequestDto, default))
+                                                    .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+            //act
+            var result = await this._target.UpdateScheduleAsync(updateScheduleRequestDto, default);
+
+            //assert
+            Assert.False(result.Success);
+            Assert.Matches("Agendamento não encontrado", result.Errors.FirstOrDefault());
+        }
+
+        [Fact]
+        public async Task UpdateSchedule_WhenDataIsCorrect_ShoudReturnSuccess()
+        {
+            //set
+            var updateScheduleRequestDto = new UpdateScheduleRequestDto()
+            {
+                Id = 1,
+                IsActive = true,
+                ScheduleTime = DateTime.Now.AddHours(4)
+            };
+
+            var dbModel = ModelHelper.CreateSchedule().SetScheduleTime(DateTime.Now.AddDays(2));
+
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.UpdateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), default)).ReturnsAsync(1);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default)).ReturnsAsync(dbModel);
+            this._updateScheduleRequestValidatorMock.Setup(v => v.ValidateAsync(updateScheduleRequestDto, default)).ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+            //act
+            var result = await this._target.UpdateScheduleAsync(updateScheduleRequestDto, default);
+
+            //assert
+            Assert.NotNull(result);
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task UpdateSchedule_WhenHasOverlap_ShoudReturnErrorWithMessage()
+        {
+            //set
+            var updateScheduleRequestDto = new UpdateScheduleRequestDto()
+            {
+                Id = 1,
+                IsActive = true,
+                ScheduleTime = DateTime.Now.AddHours(4)
+            };
+
+            var doctorSchedules = new List<Domain.Models.Schedule>()
+            {
+                new Domain.Models.Schedule()
+                {
+                    Id = 1,
+                    IsActive = true,
+                    ScheduleTime = DateTime.Now.AddHours(3),
+                    CreatedAt = DateTime.Now,
+                    DoctorId = 1,
+                    DoctorName = "Doctor 1",
+                    IsConfirmed = false
+                },
+                new Domain.Models.Schedule()
+                {
+                    Id = 2,
+                    IsActive = true,
+                    ScheduleTime = DateTime.Now.AddHours(5),
+                    DoctorId = 1,
+                    DoctorName = "Doctor 1",
+                    IsConfirmed = false
+                },
+                new Domain.Models.Schedule()
+                {
+                    Id = 3,
+                    IsActive = true,
+                    ScheduleTime = DateTime.Now.AddHours(2),
+                    DoctorId = 1,
+                    DoctorName = "Doctor 1",
+                    IsConfirmed = false
+                }
+            };
+
+            var dbModel = ModelHelper.CreateSchedule().SetScheduleTime(DateTime.Now.AddDays(2));
+
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.UpdateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), default)).ReturnsAsync(1);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default)).ReturnsAsync(dbModel);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(), default)).ReturnsAsync(doctorSchedules);
+            this._updateScheduleRequestValidatorMock.Setup(v => v.ValidateAsync(updateScheduleRequestDto, default)).ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+            //act
+            var result = await this._target.UpdateScheduleAsync(updateScheduleRequestDto, default);
+
+            //assert
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+            Assert.Contains("Data do agendamento em conflito com data(s) existente(s)", result.Errors);
+        }
     }
 
     public static class ModelHelper
@@ -113,13 +220,14 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                 IsActive = true,
                 CreatedAt = date,
                 UpdatedAt = date,
-                ScheduleTime = date + new TimeSpan(days:7,0,0,0),
+                ScheduleTime = date + new TimeSpan(days: 7, 0, 0, 0),
                 IsConfirmed = false
             };
             return model;
         }
 
-        public static Domain.Models.Schedule Displace(this Domain.Models.Schedule model, TimeSpan displacement) {
+        public static Domain.Models.Schedule Displace(this Domain.Models.Schedule model, TimeSpan displacement)
+        {
             model.ScheduleTime += displacement;
             return model;
         }

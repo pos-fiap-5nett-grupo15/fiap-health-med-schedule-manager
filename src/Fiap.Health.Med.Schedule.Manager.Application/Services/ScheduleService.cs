@@ -47,7 +47,7 @@ public class ScheduleService : IScheduleService
     {
         return await this.UnitOfWork.ScheduleRepository.GetScheduleByDoctorIdAsync(doctorId, cancellationToken);
     }
-    private async Task<Domain.Models.Schedule?> GetSchedulesByIdAsync(long scheduleId, CancellationToken cancellationToken)
+    private async Task<Domain.Models.Schedule?> GetScheduleByIdAsync(long scheduleId, CancellationToken cancellationToken)
     {
         return await this.UnitOfWork.ScheduleRepository.GetScheduleByIdAsync(scheduleId, cancellationToken);
     }
@@ -57,7 +57,7 @@ public class ScheduleService : IScheduleService
         if (await _updateScheduleRequestValidator.ValidateAsync(updateScheduleData) is var validation && !validation.IsValid)
             return Result.Fail(validation.Errors.Select(e => e.ErrorMessage).ToList());
 
-        var foundSchedule = await this.GetSchedulesByIdAsync(updateScheduleData.Id, cancellationToken);
+        var foundSchedule = await this.GetScheduleByIdAsync(updateScheduleData.Id, cancellationToken);
 
         if (foundSchedule is null)
             return Result.Fail("Agendamento não encontrado");
@@ -66,6 +66,7 @@ public class ScheduleService : IScheduleService
 
         foundSchedule.IsActive = updateScheduleData.IsActive;
         foundSchedule.ScheduleTime = updateScheduleData.ScheduleTime;
+        foundSchedule.IsConfirmed = false;
 
         var hasAnyOverlap = doctorSchedules.Select(x => foundSchedule.IsOverlappedBy(x)).Any(x => x);
         if (hasAnyOverlap)
@@ -74,6 +75,6 @@ public class ScheduleService : IScheduleService
         if (await this.UnitOfWork.ScheduleRepository.UpdateScheduleAsync(foundSchedule, cancellationToken) > 0)
             return Result.Ok();
         else
-            throw new Exception("Erro ao atualizar o agendamento");
+            return Result.Fail("Erro ao atualizar o agendamento");
     }
 }
