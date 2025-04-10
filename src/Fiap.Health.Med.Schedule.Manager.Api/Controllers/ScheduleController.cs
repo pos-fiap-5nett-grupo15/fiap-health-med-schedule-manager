@@ -19,7 +19,7 @@ public class ScheduleController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAsync(CancellationToken cancellationToken)
     {
-        var result =  await this.ScheduleService.GetAsync(cancellationToken);
+        var result = await this.ScheduleService.GetAsync(cancellationToken);
         return Ok(result);
     }
 
@@ -30,13 +30,29 @@ public class ScheduleController : ControllerBase
         return Ok();
     }
 
+    [HttpPatch("refuse/{scheduleId}/{doctorId}")]
+    public async Task<IActionResult> RefuseScheduleAsync(
+        [FromRoute] long scheduleId,
+        [FromRoute] int doctorId,
+        CancellationToken ct)
+    {
+        var result = await this.ScheduleService.RefuseScheduleAsync(scheduleId, doctorId, ct);
+
+        return StatusCode((int)result.StatusCode, result.Errors);
+    }
+
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateSchedule([FromBody] Application.DTOs.UpdateSchedule.UpdateScheduleRequestDto updateSchedule, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateSchedule(int id, [FromBody] Application.DTOs.UpdateSchedule.UpdateScheduleRequestDto updateSchedule, CancellationToken cancellationToken)
     {
         try
         {
+            if (updateSchedule is null)
+                return BadRequest("Dados vazios não são permitidos");
+            else
+                updateSchedule.Id = id;
+
             var result = await this.ScheduleService.UpdateScheduleAsync(updateSchedule, cancellationToken);
-            if (result.Success)
+            if (result.IsSuccess)
                 return Ok();
             else
                 return BadRequest(result.Errors);

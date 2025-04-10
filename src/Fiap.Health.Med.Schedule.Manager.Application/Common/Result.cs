@@ -1,32 +1,36 @@
-﻿namespace Fiap.Health.Med.Schedule.Manager.Application.Common
+﻿using System.Net;
+
+namespace Fiap.Health.Med.Schedule.Manager.Application.Common
 {
     public class Result
     {
-        public bool Success { get; }
-        public List<string> Errors { get; } = new();
+        public bool IsSuccess { get; }
+        public HttpStatusCode StatusCode { get; }
+        public List<string> Errors { get; } = [];
 
-        protected Result(bool success, List<string>? errors = null)
+        protected Result(bool isSuccess, HttpStatusCode statusCode, List<string>? errors = null)
         {
-            Success = success;
+            IsSuccess = isSuccess;
+            StatusCode = statusCode;
             if (errors != null) Errors.AddRange(errors);
         }
 
-        public static Result Ok() => new Result(true);
-        public static Result Fail(string error) => new Result(false, new List<string> { error });
-        public static Result Fail(List<string> errors) => new Result(false, errors);
+        public static Result Success(HttpStatusCode statusCode) => new(true, statusCode);
+        public static Result Fail(HttpStatusCode statusCode, string error) => new(false, statusCode, [error]);
+        public static Result Fail(HttpStatusCode statusCode, List<string> errors) => new(false, statusCode, errors);
     }
 
     public class Result<T> : Result
     {
         public T? Data { get; }
 
-        private Result(bool success, T? data, List<string>? errors = null) : base(success, errors)
+        private Result(bool isSuccess, HttpStatusCode statusCode, T? data, List<string>? errors = null) : base(isSuccess, statusCode, errors)
         {
             Data = data;
         }
 
-        public static Result<T> Ok(T data) => new Result<T>(true, data);
-        public static Result<T> Fail(string error) => new Result<T>(false, default, new List<string> { error });
-        public static Result<T> Fail(List<string> errors) => new Result<T>(false, default, errors);
+        public static Result<T> Success(HttpStatusCode statusCode, T data) => new(true, statusCode, data);
+        public static new Result<T> Fail(HttpStatusCode statusCode, string error) => new(false, statusCode, default, [error]);
+        public static new Result<T> Fail(HttpStatusCode statusCode, List<string> errors) => new(false, statusCode, default, errors);
     }
 }

@@ -1,6 +1,5 @@
 using Fiap.Health.Med.Schedule.Manager.Application.DTOs.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
-using Fiap.Health.Med.Schedule.Manager.Application.Validators.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.Migrations;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.UnitOfWork;
@@ -35,19 +34,14 @@ public static class ServiceCollectionExtensions
         }
         return services;
     }
-    public static IServiceCollection AddValidators(this IServiceCollection services)
-    {
-        services.AddScoped<IValidator<UpdateScheduleRequestDto>, UpdateScheduleValidator>();
-        return services;
-    }
     private static ServiceProvider BuildFluentMigrationServiceProvider(IServiceCollection sc, IConfiguration configuration)
     {
         var strConnection = configuration.GetConnectionString("DatabaseDllConnection");
         if (string.IsNullOrEmpty(strConnection))
             throw new InvalidOperationException("DatabaseDllConnection is not defined.");
 
-        return  new ServiceCollection().AddFluentMigratorCore()
-            .ConfigureRunner( rb => 
+        return new ServiceCollection().AddFluentMigratorCore()
+            .ConfigureRunner(rb =>
                 rb.AddSqlServer()
                     .WithGlobalConnectionString(strConnection)
                     .ScanIn(typeof(CreateScheduleTable).Assembly).For.Migrations()
