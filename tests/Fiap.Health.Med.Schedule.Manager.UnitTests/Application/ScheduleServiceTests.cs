@@ -2,7 +2,9 @@
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
 using Fiap.Health.Med.Schedule.Manager.Domain.Enum;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
+using Fiap.Health.Med.Schedule.Manager.Infrastructure.Settings;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
@@ -11,10 +13,15 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
     {
         private Mock<IUnitOfWork> _unitOfWorkMock;
         public IScheduleService _target;
+        private readonly Mock<ILogger<ScheduleService>> _logger;
+        private readonly Mock<IProducerSettings> _producer;
+
         public ScheduleServiceTests()
         {
             this._unitOfWorkMock = new Mock<IUnitOfWork>();
-            this._target = new ScheduleService(this._unitOfWorkMock.Object);
+            this._logger = new Mock<ILogger<ScheduleService>>();
+            this._producer = new Mock<IProducerSettings>();
+            this._target = new ScheduleService(this._unitOfWorkMock.Object, this._producer.Object, this._logger.Object);
         }
 
         [Fact]

@@ -25,7 +25,7 @@ public class ScheduleController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Domain.Models.Schedule schedule, CancellationToken cancellationToken)
     {
-        await this.ScheduleService.CreateScheduleAsync(schedule, cancellationToken);
+        await this.ScheduleService.RequestCreateScheduleAsync(schedule, cancellationToken);
         return Ok();
     }
 

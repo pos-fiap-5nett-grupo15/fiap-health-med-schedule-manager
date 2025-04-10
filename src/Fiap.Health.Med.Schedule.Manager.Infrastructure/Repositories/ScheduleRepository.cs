@@ -69,4 +69,19 @@ public class ScheduleRepository : IScheduleRepository
             return (false, e.Message);
         }
     }
+    public async Task<int> CreatePendingScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    {
+        var query = @"INSERT INTO Schedule.Schedule (DoctorId, PatientId, CreatedAt, UpdatedAt, ScheduleTime, Status)
+                      VALUES (@DoctorId, @PatientId, @CreatedAt, @UpdatedAt, @ScheduleTime, @Status);
+                      SELECT SCOPE_IDENTITY();";
+
+        return (await _database.Connection.ExecuteScalarAsync<int>(query, schedule));
+    }
+
+    public async Task<Domain.Models.Schedule> GetScheduleByIdAsync(int scheduleId, CancellationToken ct)
+    {
+        var query = @"SELECT * FROM Schedule.Schedule WHERE Id = @ScheduleId";
+
+        return (await _database.Connection.QueryAsync<Domain.Models.Schedule>(query, ct)).FirstOrDefault();
+    }
 }
