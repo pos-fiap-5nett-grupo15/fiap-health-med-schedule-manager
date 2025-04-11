@@ -4,6 +4,7 @@ using Fiap.Health.Med.Schedule.Manager.Domain.Enum;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
+using System.Net;
 
 namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
 {
@@ -35,7 +36,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                 .ReturnsAsync(new List<Domain.Models.Schedule>());
 
             //act
-            var act = async () => await this._target.CreateScheduleAsync(model,CancellationToken.None);
+            var act = async () => await this._target.CreateScheduleAsync(model, CancellationToken.None);
 
             //assert
             await act.Should().NotThrowAsync<Exception>();
@@ -51,8 +52,8 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             //set
             var model = ModelHelper.CreateSchedule();
 
-            var dbModels = new List<Domain.Models.Schedule>() 
-            { 
+            var dbModels = new List<Domain.Models.Schedule>()
+            {
                 ModelHelper.CreateSchedule()
                            .SetScheduleTime(model.ScheduleTime)
                            .Displace(new TimeSpan(0, minutes, seconds))
@@ -60,7 +61,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
 
 
             this._unitOfWorkMock
-                .Setup(x => 
+                .Setup(x =>
                     x.ScheduleRepository.CreateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), CancellationToken.None))
                 .ReturnsAsync(() => true);
 
@@ -102,6 +103,147 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
 
             //assert
             await act.Should().ThrowAsync<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task AcceptScheduleAsync_WhenRepositoryReturnsError_ShouldFailWithUnprocessableContent()
+        {
+            // Arrange
+            var scheduleId = 1L;
+            var doctorId = 1;
+            var expectedError = "Erro ao buscar agendamento";
+
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, CancellationToken.None))
+                .ReturnsAsync((null, expectedError));
+
+            // Act
+            var result = await _target.AcceptScheduleAsync(scheduleId, doctorId, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeFalse();
+            result.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        }
+
+        [Fact]
+        public async Task AcceptScheduleAsync_WhenScheduleIsNull_ShouldFailWithNotFound()
+        {
+            // Arrange
+            var scheduleId = 1L;
+            var doctorId = 1;
+
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, CancellationToken.None))
+                .ReturnsAsync((null as Domain.Models.Schedule, null));
+
+            // Act
+            var result = await _target.AcceptScheduleAsync(scheduleId, doctorId, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeFalse();
+            result.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task AcceptScheduleAsync_WhenScheduleIsPendingAndTimePassed_ShouldDeleteAndReturnSuccess()
+        {
+            // Arrange
+            var scheduleId = 1L;
+            var doctorId = 1;
+
+            var schedule = ModelHelper.CreateSchedule();
+            schedule.ScheduleTime = DateTime.Now.AddHours(-1);
+            schedule.Status = EScheduleStatus.PENDING_CONFIRMATION;
+
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, CancellationToken.None))
+                .ReturnsAsync((schedule, null));
+
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.DeleteScheduleStatusAsync(scheduleId, CancellationToken.None))
+                .ReturnsAsync((true, null));
+
+            // Act
+            var result = await _target.AcceptScheduleAsync(scheduleId, doctorId, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }
+
+        [Fact]
+        public async Task AcceptScheduleAsync_WhenScheduleIsPendingAndTimeFuture_ShouldConfirmAndReturnSuccess()
+        {
+            // Arrange
+            var scheduleId = 1L;
+            var doctorId = 1;
+
+            var schedule = ModelHelper.CreateSchedule();
+            schedule.ScheduleTime = DateTime.Now.AddHours(1);
+            schedule.Status = EScheduleStatus.PENDING_CONFIRMATION;
+
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, CancellationToken.None))
+                .ReturnsAsync((schedule, null));
+
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.CONFIRMED, CancellationToken.None))
+                .ReturnsAsync((true, null));
+
+            // Act
+            var result = await _target.AcceptScheduleAsync(scheduleId, doctorId, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }
+
+        [Fact]
+        public async Task AcceptScheduleAsync_WhenScheduleIsCanceledByDoctor_ShouldRefuseAndReturnSuccess()
+        {
+            // Arrange
+            var scheduleId = 1L;
+            var doctorId = 1;
+
+            var schedule = ModelHelper.CreateSchedule();
+            schedule.Status = EScheduleStatus.CANCELED_BY_DOCTOR;
+
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, CancellationToken.None))
+                .ReturnsAsync((schedule, null));
+
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.REFUSED, CancellationToken.None))
+                .ReturnsAsync((true, null));
+
+            // Act
+            var result = await _target.AcceptScheduleAsync(scheduleId, doctorId, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }
+
+        [Fact]
+        public async Task AcceptScheduleAsync_WhenScheduleHasInvalidStatus_ShouldReturnError()
+        {
+            // Arrange
+            var scheduleId = 1L;
+            var doctorId = 1;
+
+            var schedule = ModelHelper.CreateSchedule();
+            schedule.Status = EScheduleStatus.CONFIRMED; // qualquer status inválido para aceitar
+
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, CancellationToken.None))
+                .ReturnsAsync((schedule, null));
+
+            // Act
+            var result = await _target.AcceptScheduleAsync(scheduleId, doctorId, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeFalse();
+            result.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
         }
     }
 

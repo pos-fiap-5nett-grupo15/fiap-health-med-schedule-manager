@@ -39,4 +39,15 @@ public class ScheduleController : ControllerBase
 
         return StatusCode((int) result.StatusCode, result.Errors);
     }
+
+    [HttpPatch("accept/{scheduleId}/{doctorId}")]
+    public async Task<IActionResult> AcceptScheduleAsync(
+        [FromRoute] long scheduleId,
+        [FromRoute] int doctorId,
+        CancellationToken ct)
+    {
+        var result = await this.ScheduleService.AcceptScheduleAsync(scheduleId, doctorId, ct);
+
+        return StatusCode((int)result.StatusCode, result.Errors);
+    }
 }
