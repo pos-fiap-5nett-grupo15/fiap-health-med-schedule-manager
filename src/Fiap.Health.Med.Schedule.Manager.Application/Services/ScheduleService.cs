@@ -25,25 +25,10 @@ public class ScheduleService : IScheduleService
         this._logger = logger;
         this._producer = producer;
     }
-
     
     public async Task<IEnumerable<Domain.Models.Schedule>> GetAsync(CancellationToken cancellationToken)
     {
         return await this._unitOfWork.ScheduleRepository.GetAsync(cancellationToken);
-    }
-
-    public async Task CreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
-    {
-        if (IsPassedTime(schedule, DateTime.Now) || IsPassedTime(schedule, DateTime.Now))
-            throw new InvalidOperationException();
-
-        var dbModels = await this.GetScheduleByAsync(schedule.DoctorId, schedule.ScheduleTime, cancellationToken);
-
-        var hasAnyOverlap = dbModels.Select(x => schedule.IsOverlappedBy(x)).Any(x => x == true);
-        if (hasAnyOverlap)
-            throw new InvalidOperationException();
-
-        await this._unitOfWork.ScheduleRepository.CreateScheduleAsync(schedule, cancellationToken);
     }
 
     public async Task HandleCreateAsync(CreateScheduleMessage? deserialize, CancellationToken cancellationToken)
@@ -51,7 +36,7 @@ public class ScheduleService : IScheduleService
         if(deserialize == null) throw new NullReferenceException();
         var schedule = await this._unitOfWork.ScheduleRepository.GetScheduleByIdAsync(deserialize.Id, cancellationToken);
         
-        if (IsPassedTime(schedule, DateTime.Now) || IsPassedTime(schedule, DateTime.Now))
+        if (IsPassedTime(schedule, DateTime.Now))
             throw new InvalidOperationException();
 
         var dbModels 
@@ -69,7 +54,7 @@ public class ScheduleService : IScheduleService
         try
         {
             schedule.Status = EScheduleStatus.UNDEFINED;
-            var id = await this._unitOfWork.ScheduleRepository.CreatePendingScheduleAsync(schedule, cancellationToken); // TODO Verificar exceções do dapper
+            var id = await this._unitOfWork.ScheduleRepository.CreatePendingScheduleAsync(schedule, cancellationToken);
             await PublishScheduleAsync(new CreateScheduleMessage(id), this._producer, cancellationToken);
             return Result<int>.Success(HttpStatusCode.Created,id);
         }
