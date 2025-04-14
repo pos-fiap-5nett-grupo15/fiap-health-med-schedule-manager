@@ -1,13 +1,10 @@
+using System.Net;
+using System.Text;
 using Fiap.Health.Med.Schedule.Manager.Application.Common;
 using Fiap.Health.Med.Schedule.Manager.Domain.Enum;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
-using System.Net;
-using System.Text;
-using System.Text.Json.Serialization;
-using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.Settings;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 
@@ -49,23 +46,32 @@ public class ScheduleService : IScheduleService
         await this._unitOfWork.ScheduleRepository.CreateScheduleAsync(schedule, cancellationToken);
     }
 
-    public Task HandleAsync(Domain.Models.Schedule? deserialize)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task HandleAsync(CreateScheduleMessage? deserialize, CancellationToken cancellationToken)
+    public async Task HandleCreateAsync(CreateScheduleMessage? deserialize, CancellationToken cancellationToken)
     {
         if(deserialize == null) throw new NullReferenceException();
-        var dbModel = await this._unitOfWork.ScheduleRepository.GetScheduleByIdAsync(deserialize.Id, cancellationToken);
+        var schedule = await this._unitOfWork.ScheduleRepository.GetScheduleByIdAsync(deserialize.Id, cancellationToken);
+        
+        if (IsPassedTime(schedule, DateTime.Now) || IsPassedTime(schedule, DateTime.Now))
+            throw new InvalidOperationException();
+
+        var dbModels 
+            = (await this.GetScheduleByAsync(schedule.DoctorId, schedule.ScheduleTime, cancellationToken)).Where( x => x.Status != EScheduleStatus.UNDEFINED );
+        
+        var hasAnyOverlap = dbModels.Select(x => schedule.IsOverlappedBy(x)).Any(x => x == true);
+        
+        var newStatus = hasAnyOverlap ? EScheduleStatus.REFUSED : EScheduleStatus.CONFIRMED;
+        
+        await this._unitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(schedule.Id,newStatus, cancellationToken);
     }
 
-    public async Task RequestCreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    public async Task<Result<int>> RequestCreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
     {
         try
         {
+            schedule.Status = EScheduleStatus.UNDEFINED;
             var id = await this._unitOfWork.ScheduleRepository.CreatePendingScheduleAsync(schedule, cancellationToken); // TODO Verificar exceções do dapper
             await PublishScheduleAsync(new CreateScheduleMessage(id), this._producer, cancellationToken);
+            return Result<int>.Success(HttpStatusCode.Created,id);
         }
         catch (Exception e)
         {
@@ -74,12 +80,7 @@ public class ScheduleService : IScheduleService
         }
         
     }
-
-    // public static async Task PublishScheduleAsync<T>(T message, string hostName, int port, string username,
-    //     string password, string exchangeName, string routingKey, CancellationToken cancellationToken)
-    // {
-    //     RabbitMq.Client.ConnectionFactory
-    // }
+    
 
     public static async Task PublishScheduleAsync<T>(T message, IProducerSettings settings,
         CancellationToken cancellationToken)

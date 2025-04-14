@@ -14,7 +14,6 @@ public class ScheduleController : ControllerBase
         this.ScheduleService = scheduleService;
     }
 
-
     [HttpGet]
     public async Task<IActionResult> GetAsync(CancellationToken cancellationToken)
     { 
