@@ -57,7 +57,7 @@ public class ScheduleService : IScheduleService
         var foundSchedule = await this.GetScheduleByIdAsync(updateScheduleData.Id, cancellationToken);
 
         if (foundSchedule is null)
-            return Result.Fail(HttpStatusCode.BadRequest, "Agendamento não encontrado");
+            return Result.Fail(HttpStatusCode.NotFound, "Agendamento não encontrado");
 
         var doctorSchedules = await this.GetScheduleByAsync(foundSchedule.DoctorId, foundSchedule.ScheduleTime, cancellationToken);
         foundSchedule.ScheduleTime = updateScheduleData.ScheduleTime;
