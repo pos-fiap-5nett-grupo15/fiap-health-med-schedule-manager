@@ -104,7 +104,7 @@ public class ScheduleService : IScheduleService
 
     public async Task<Result> AcceptScheduleAsync(long scheduleId, int doctorId, CancellationToken ct)
     {
-        (var schedule, var getScheduleError) = await this.UnitOfWork.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, ct);
+        (var schedule, var getScheduleError) = await this._unitOfWork.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, ct);
         if (!string.IsNullOrWhiteSpace(getScheduleError))
             return Result.Fail(HttpStatusCode.UnprocessableContent, getScheduleError);
 
@@ -115,19 +115,19 @@ public class ScheduleService : IScheduleService
         {
             if (schedule.ScheduleTime < DateTime.Now)
             {
-                if (await this.UnitOfWork.ScheduleRepository.DeleteScheduleStatusAsync(scheduleId, ct) is (var successDelete, var updateDeleteError) && !successDelete)
+                if (await this._unitOfWork.ScheduleRepository.DeleteScheduleStatusAsync(scheduleId, ct) is (var successDelete, var updateDeleteError) && !successDelete)
                     return Result.Fail(HttpStatusCode.UnprocessableContent, !string.IsNullOrWhiteSpace(updateDeleteError) ? updateDeleteError : "Um erro ocorreu ao excluir o Agendamento.");
             }
             else
             {
-                if (await this.UnitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.CONFIRMED, ct) is (var successConfirmed, var updateConfirmedError) && !successConfirmed)
+                if (await this._unitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.CONFIRMED, ct) is (var successConfirmed, var updateConfirmedError) && !successConfirmed)
                     return Result.Fail(HttpStatusCode.UnprocessableContent, !string.IsNullOrWhiteSpace(updateConfirmedError) ? updateConfirmedError : "Um erro ocorreu ao atualizar status para confirmar o Agendamento.");
             }
 
         }
         else if (schedule.Status == EScheduleStatus.CANCELED_BY_DOCTOR)
         {
-            if (await this.UnitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.REFUSED, ct) is (var successRefused, var updateRefusedError) && !successRefused)
+            if (await this._unitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.REFUSED, ct) is (var successRefused, var updateRefusedError) && !successRefused)
                 return Result.Fail(HttpStatusCode.UnprocessableContent, !string.IsNullOrWhiteSpace(updateRefusedError) ? updateRefusedError : "Um erro ocorreu ao atualizar status para cancelar o Agendamento.");
         }
         else
@@ -159,7 +159,7 @@ public class ScheduleService : IScheduleService
                 return Result.Fail(HttpStatusCode.BadRequest, "Data do agendamento em conflito com data(s) existente(s)");
         }
 
-        if (await this.UnitOfWork.ScheduleRepository.UpdateScheduleAsync(foundSchedule, cancellationToken) > 0)
+        if (await this._unitOfWork.ScheduleRepository.UpdateScheduleAsync(foundSchedule, cancellationToken) > 0)
             return Result.Success(HttpStatusCode.OK);
         else
             return Result.Fail(HttpStatusCode.InternalServerError, "Erro ao atualizar o agendamento");
@@ -174,7 +174,7 @@ public class ScheduleService : IScheduleService
     }
     private async Task<Domain.Models.Schedule?> GetScheduleByIdAsync(long scheduleId, CancellationToken cancellationToken)
     {
-        return await this.UnitOfWork.ScheduleRepository.GetScheduleByIdAsync(scheduleId, cancellationToken);
+        return await this._unitOfWork.ScheduleRepository.GetScheduleByIdAsync(scheduleId, cancellationToken);
     }
     #endregion Private methods.
 }

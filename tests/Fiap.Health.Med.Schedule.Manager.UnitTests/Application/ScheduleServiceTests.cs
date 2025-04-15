@@ -7,9 +7,6 @@ using Fiap.Health.Med.Schedule.Manager.Infrastructure.Settings;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Threading;
-using FluentValidation;
-using Moq;
 using System.Net;
 
 namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
@@ -41,7 +38,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                     CancellationToken.None))
                 .ReturnsAsync(() => true);
 
-            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<int>(), CancellationToken.None)).ReturnsAsync(model);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), CancellationToken.None)).ReturnsAsync(model);
 
             //act
             var act = async () => await this._target.HandleCreateAsync(new CreateScheduleMessage(123),CancellationToken.None);
@@ -77,7 +74,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                 .Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(), CancellationToken.None))
                 .ReturnsAsync(dbModels);
 
-            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<int>(), CancellationToken.None)).ReturnsAsync(model);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), CancellationToken.None)).ReturnsAsync(model);
 
             //act
             var act = async () => await this._target.HandleCreateAsync(new CreateScheduleMessage(123), CancellationToken.None);
@@ -113,7 +110,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                 .ReturnsAsync(dbModels);
 
 
-            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<int>(), CancellationToken.None)).ReturnsAsync(model);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), CancellationToken.None)).ReturnsAsync(model);
 
             //act
             var act = async () => await this._target.HandleCreateAsync(new CreateScheduleMessage(123), CancellationToken.None);
