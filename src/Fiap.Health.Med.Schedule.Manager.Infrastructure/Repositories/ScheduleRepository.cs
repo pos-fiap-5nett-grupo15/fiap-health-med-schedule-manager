@@ -70,6 +70,21 @@ public class ScheduleRepository : IScheduleRepository
         }
     }
 
+    public async Task<(bool, string)> DeleteScheduleStatusAsync(long scheduleId, CancellationToken ct)
+    {
+        try
+        {
+            var query = @$"DELETE FROM Schedule.Schedule 
+                      WHERE Id = {scheduleId}";
+
+            return (await _database.Connection.ExecuteAsync(query) > 0, string.Empty);
+        }
+        catch (Exception e)
+        {
+            return (false, e.Message);
+        }
+    }
+
     public async Task<Domain.Models.Schedule?> GetScheduleByIdAsync(long scheduleId, CancellationToken cancellationToken)
     {
         var query = @"SELECT * FROM Schedule.Schedule WHERE Id = @Id";

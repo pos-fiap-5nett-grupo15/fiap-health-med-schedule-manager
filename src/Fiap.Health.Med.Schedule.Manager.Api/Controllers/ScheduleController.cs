@@ -55,11 +55,22 @@ public class ScheduleController : ControllerBase
             if (result.IsSuccess)
                 return Ok();
             else
-                return BadRequest(result.Errors);
+                return StatusCode((int)result.StatusCode, result.Errors);
         }
         catch (Exception ex)
         {
             return StatusCode((int)HttpStatusCode.InternalServerError, ex.Message);
         }
+    }
+
+    [HttpPatch("accept/{scheduleId}/{doctorId}")]
+    public async Task<IActionResult> AcceptScheduleAsync(
+        [FromRoute] long scheduleId,
+        [FromRoute] int doctorId,
+        CancellationToken ct)
+    {
+        var result = await this.ScheduleService.AcceptScheduleAsync(scheduleId, doctorId, ct);
+
+        return StatusCode((int)result.StatusCode, result.Errors);
     }
 }
