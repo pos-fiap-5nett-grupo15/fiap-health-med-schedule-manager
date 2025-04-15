@@ -10,4 +10,6 @@ public interface IScheduleRepository
     Task<(Models.Schedule?, string)> GetScheduleByIdAndDoctorIdAsync(long scheduleId, int doctorId, CancellationToken ct);
     Task<(bool, string)> UpdatescheduleStatusAsync(long scheduleId, EScheduleStatus newStatus, CancellationToken ct);
     Task<(bool, string)> DeleteScheduleStatusAsync(long scheduleId, CancellationToken ct);
+    Task<Models.Schedule?> GetScheduleByIdAsync(long scheduleId, CancellationToken cancellationToken);
+    Task<int> UpdateScheduleAsync(Models.Schedule schedule, CancellationToken cancellationToken);
 }

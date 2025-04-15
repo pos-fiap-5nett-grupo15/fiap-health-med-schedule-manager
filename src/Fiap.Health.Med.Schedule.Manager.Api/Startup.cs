@@ -22,7 +22,7 @@ internal class Startup
         services.AddDataServices();
         services.AddServices();
     }
-    
+
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
     {
         // Configure the HTTP request pipeline.

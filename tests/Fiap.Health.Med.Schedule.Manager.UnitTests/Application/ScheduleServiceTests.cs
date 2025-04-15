@@ -1,8 +1,10 @@
 ﻿
+using Fiap.Health.Med.Schedule.Manager.Application.DTOs.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
 using Fiap.Health.Med.Schedule.Manager.Domain.Enum;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using FluentAssertions;
+using FluentValidation;
 using Moq;
 using System.Net;
 
@@ -216,6 +218,10 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                 x.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.REFUSED, CancellationToken.None))
                 .ReturnsAsync((true, null));
 
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.DeleteScheduleStatusAsync(scheduleId, CancellationToken.None))
+                .ReturnsAsync((true, null));
+
             // Act
             var result = await _target.AcceptScheduleAsync(scheduleId, doctorId, CancellationToken.None);
 
@@ -245,6 +251,100 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             result.IsSuccess.Should().BeFalse();
             result.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
         }
+
+
+        [Fact]
+        public async Task UpdateSchedule_WhenScheduleDoesNotExist_ShouldReturnFailureWithErrorMessage()
+        {
+            //set
+            var updateScheduleRequestDto = new UpdateScheduleRequestDto()
+            {
+                Id = 1,
+                ScheduleTime = DateTime.Now.AddHours(1)
+            };
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), CancellationToken.None)).ReturnsAsync((Domain.Models.Schedule?)null);
+
+            //act
+            var result = await this._target.UpdateScheduleAsync(updateScheduleRequestDto, default);
+
+            //assert
+            Assert.False(result.IsSuccess);
+            Assert.Contains("Agendamento não encontrado", result.Errors);
+        }
+
+        [Fact]
+        public async Task UpdateSchedule_WhenDataIsCorrect_ShoudReturnSuccess()
+        {
+            //set
+            var updateScheduleRequestDto = new UpdateScheduleRequestDto()
+            {
+                Id = 1,
+                ScheduleTime = DateTime.Now.AddHours(4)
+            };
+
+            var dbModel = ModelHelper.CreateSchedule().SetScheduleTime(DateTime.Now.AddDays(2));
+
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.UpdateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), default)).ReturnsAsync(1);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default)).ReturnsAsync(dbModel);
+
+            //act
+            var result = await this._target.UpdateScheduleAsync(updateScheduleRequestDto, default);
+
+            //assert
+            Assert.NotNull(result);
+            Assert.True(result.IsSuccess);
+        }
+
+        [Fact]
+        public async Task UpdateSchedule_WhenHasOverlap_ShoudReturnErrorWithMessage()
+        {
+            //set
+            var updateScheduleRequestDto = new UpdateScheduleRequestDto()
+            {
+                Id = 1,
+                ScheduleTime = DateTime.Now.AddHours(4)
+            };
+
+            var doctorSchedules = new List<Domain.Models.Schedule>()
+            {
+                new Domain.Models.Schedule()
+                {
+                    Id = 1,
+                    Status = EScheduleStatus.PENDING_CONFIRMATION,
+                    ScheduleTime = DateTime.Now.AddHours(3),
+                    CreatedAt = DateTime.Now,
+                    DoctorId = 1,
+                },
+                new Domain.Models.Schedule()
+                {
+                    Id = 2,
+                    Status = EScheduleStatus.AVAILABLE,
+                    ScheduleTime = DateTime.Now.AddHours(5),
+                    DoctorId = 1,
+                },
+                new Domain.Models.Schedule()
+                {
+                    Id = 3,
+                    Status = EScheduleStatus.REFUSED,
+                    ScheduleTime = DateTime.Now.AddHours(2),
+                    DoctorId = 1
+                }
+            };
+
+            var dbModel = ModelHelper.CreateSchedule().SetScheduleTime(DateTime.Now.AddDays(2));
+
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.UpdateScheduleAsync(It.IsAny<Domain.Models.Schedule>(), default)).ReturnsAsync(1);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default)).ReturnsAsync(dbModel);
+            this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByDoctorIdAsync(It.IsAny<int>(), default)).ReturnsAsync(doctorSchedules);
+
+            //act
+            var result = await this._target.UpdateScheduleAsync(updateScheduleRequestDto, default);
+
+            //assert
+            Assert.NotNull(result);
+            Assert.False(result.IsSuccess);
+            Assert.Contains("Data do agendamento em conflito com data(s) existente(s)", result.Errors);
+        }
     }
 
     public static class ModelHelper
@@ -259,13 +359,14 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                 PatientId = 1,
                 CreatedAt = date,
                 UpdatedAt = date,
-                ScheduleTime = date + new TimeSpan(days:7,0,0,0),
+                ScheduleTime = date + new TimeSpan(days: 7, 0, 0, 0),
                 Status = EScheduleStatus.AVAILABLE
             };
             return model;
         }
 
-        public static Domain.Models.Schedule Displace(this Domain.Models.Schedule model, TimeSpan displacement) {
+        public static Domain.Models.Schedule Displace(this Domain.Models.Schedule model, TimeSpan displacement)
+        {
             model.ScheduleTime += displacement;
             return model;
         }

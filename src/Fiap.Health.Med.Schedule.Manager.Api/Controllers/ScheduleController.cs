@@ -1,5 +1,6 @@
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace Fiap.Health.Med.Schedule.Manager.Api.Controllers;
 
@@ -8,7 +9,7 @@ namespace Fiap.Health.Med.Schedule.Manager.Api.Controllers;
 public class ScheduleController : ControllerBase
 {
     public IScheduleService ScheduleService { get; set; }
-    
+
     public ScheduleController(IScheduleService scheduleService)
     {
         this.ScheduleService = scheduleService;
@@ -17,8 +18,8 @@ public class ScheduleController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetAsync(CancellationToken cancellationToken)
-    { 
-        var result =  await this.ScheduleService.GetAsync(cancellationToken);
+    {
+        var result = await this.ScheduleService.GetAsync(cancellationToken);
         return Ok(result);
     }
 
@@ -37,7 +38,29 @@ public class ScheduleController : ControllerBase
     {
         var result = await this.ScheduleService.RefuseScheduleAsync(scheduleId, doctorId, ct);
 
-        return StatusCode((int) result.StatusCode, result.Errors);
+        return StatusCode((int)result.StatusCode, result.Errors);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateSchedule(int id, [FromBody] Application.DTOs.UpdateSchedule.UpdateScheduleRequestDto updateSchedule, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (updateSchedule is null)
+                return BadRequest("Dados vazios não são permitidos");
+            else
+                updateSchedule.Id = id;
+
+            var result = await this.ScheduleService.UpdateScheduleAsync(updateSchedule, cancellationToken);
+            if (result.IsSuccess)
+                return Ok();
+            else
+                return StatusCode((int)result.StatusCode, result.Errors);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, ex.Message);
+        }
     }
 
     [HttpPatch("accept/{scheduleId}/{doctorId}")]
