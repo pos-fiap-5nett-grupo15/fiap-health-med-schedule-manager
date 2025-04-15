@@ -21,7 +21,7 @@ public class ScheduleRepository : IScheduleRepository
         var query = @"INSERT INTO Schedule.Schedule (DoctorId, PatientId, CreatedAt, UpdatedAt, ScheduleTime, Status)
                       VALUES (@DoctorId, @PatientId, @CreatedAt, @UpdatedAt, @ScheduleTime, @Status)";
 
-        return (await _database.Connection.ExecuteScalarAsync<int>(query, schedule)) >0;
+        return (await _database.Connection.ExecuteScalarAsync<int>(query, schedule)) > 0;
     }
 
     public async Task<IEnumerable<Domain.Models.Schedule>> GetAsync(CancellationToken cancellationToken)
@@ -92,5 +92,35 @@ public class ScheduleRepository : IScheduleRepository
                 param: new { ScheduleId = scheduleId });
         
         return result.FirstOrDefault();
+    }
+    public async Task<(bool, string)> DeleteScheduleStatusAsync(long scheduleId, CancellationToken ct)
+    {
+        try
+        {
+            var query = @$"DELETE FROM Schedule.Schedule 
+                      WHERE Id = {scheduleId}";
+
+            return (await _database.Connection.ExecuteAsync(query) > 0, string.Empty);
+        }
+        catch (Exception e)
+        {
+            return (false, e.Message);
+        }
+    }
+
+    public async Task<Domain.Models.Schedule?> GetScheduleByIdAsync(long scheduleId, CancellationToken cancellationToken)
+    {
+        var query = @"SELECT * FROM Schedule.Schedule WHERE Id = @Id";
+        return await _database.Connection.QueryFirstOrDefaultAsync<Domain.Models.Schedule?>(query, new { Id = scheduleId });
+    }
+
+    public async Task<int> UpdateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    {
+        var query = @$"UPDATE Schedule.Schedule 
+                       SET
+                        {nameof(Domain.Models.Schedule.Status)} = @Status,
+                        {nameof(Domain.Models.Schedule.ScheduleTime)} = @ScheduleTime
+                       WHERE Id = @Id";
+        return await _database.Connection.ExecuteAsync(query, schedule);
     }
 }

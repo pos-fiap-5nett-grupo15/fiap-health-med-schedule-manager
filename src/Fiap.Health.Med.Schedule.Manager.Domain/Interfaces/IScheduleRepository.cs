@@ -11,4 +11,6 @@ public interface IScheduleRepository
     Task<(bool, string)> UpdatescheduleStatusAsync(long scheduleId, EScheduleStatus newStatus, CancellationToken ct);
     Task<int> CreatePendingScheduleAsync(Models.Schedule schedule, CancellationToken cancellationToken);
     Task<Models.Schedule> GetScheduleByIdAsync(int scheduleId, CancellationToken ct);
+    Task<(bool, string)> DeleteScheduleStatusAsync(long scheduleId, CancellationToken ct);
+    Task<int> UpdateScheduleAsync(Models.Schedule schedule, CancellationToken cancellationToken);
 }

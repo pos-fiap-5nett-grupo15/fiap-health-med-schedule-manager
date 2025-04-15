@@ -25,7 +25,7 @@ internal class Startup
         services.AddServices();
         services.AddRabbitMqService();
     }
-    
+
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
     {
         // Configure the HTTP request pipeline.

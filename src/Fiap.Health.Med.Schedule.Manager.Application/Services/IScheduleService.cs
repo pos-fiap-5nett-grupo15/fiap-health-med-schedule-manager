@@ -1,4 +1,5 @@
 using Fiap.Health.Med.Schedule.Manager.Application.Common;
+using Fiap.Health.Med.Schedule.Manager.Application.DTOs.UpdateSchedule;
 
 namespace Fiap.Health.Med.Schedule.Manager.Application.Services;
 
@@ -8,4 +9,7 @@ public interface IScheduleService
     Task<Result> RefuseScheduleAsync(long scheduleId, int doctorId, CancellationToken ct);
     Task    HandleCreateAsync(CreateScheduleMessage? deserialize, CancellationToken cancellationToken);
     Task<Result<int>> RequestCreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken);
+    Task CreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken);
+    Task<Result> AcceptScheduleAsync(long scheduleId, int doctorId, CancellationToken ct);
+    Task<Result> UpdateScheduleAsync(UpdateScheduleRequestDto updateScheduleData, CancellationToken cancellationToken);
 }
