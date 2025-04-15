@@ -161,6 +161,10 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                 x.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, CancellationToken.None))
                 .ReturnsAsync((schedule, null));
 
+            _unitOfWorkMock.Setup(x =>
+                x.ScheduleRepository.DeleteScheduleStatusAsync(scheduleId, CancellationToken.None))
+                .ReturnsAsync((true, null));
+
             // Act
             var result = await _target.AcceptScheduleAsync(scheduleId, doctorId, CancellationToken.None);
 

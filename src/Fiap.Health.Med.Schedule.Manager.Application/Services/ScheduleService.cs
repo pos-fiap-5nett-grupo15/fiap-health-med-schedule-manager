@@ -60,7 +60,7 @@ public class ScheduleService : IScheduleService
 
         if (schedule.Status == EScheduleStatus.PENDING_CONFIRMATION)
         {
-            if (schedule.ScheduleTime.Date < DateTime.Now.Date)
+            if (schedule.ScheduleTime < DateTime.Now)
             {
                 if (await this.UnitOfWork.ScheduleRepository.DeleteScheduleStatusAsync(scheduleId, ct) is (var successDelete, var updateDeleteError) && !successDelete)
                     return Result.Fail(HttpStatusCode.UnprocessableContent, !string.IsNullOrWhiteSpace(updateDeleteError) ? updateDeleteError : "Um erro ocorreu ao excluir o Agendamento.");
