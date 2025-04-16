@@ -46,7 +46,7 @@ public class ScheduleController : ControllerBase
         try
         {
             if (updateSchedule is null)
-                return BadRequest("Dados vazios n„o s„o permitidos");
+                return BadRequest("Dados vazios n√£o s√£o permitidos");
             else
                 updateSchedule.Id = id;
 
