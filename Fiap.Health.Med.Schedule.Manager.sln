@@ -21,13 +21,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Health.Med.Schedule.Ma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Health.Med.Schedule.Manager.Api", "src\Fiap.Health.Med.Schedule.Manager.Api\Fiap.Health.Med.Schedule.Manager.Api.csproj", "{CC5DEB1B-77C4-4DBB-9AD1-4EEB14B8CF28}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9F81718F-D3EB-4405-BBF5-FE2BBD8A271E}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0C6F0A41-5F86-4CE7-9424-271228362E99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -58,6 +60,13 @@ Global
 		{CC5DEB1B-77C4-4DBB-9AD1-4EEB14B8CF28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC5DEB1B-77C4-4DBB-9AD1-4EEB14B8CF28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC5DEB1B-77C4-4DBB-9AD1-4EEB14B8CF28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D6B43C4-659D-40D5-87D9-6BC7CB62E383}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D6B43C4-659D-40D5-87D9-6BC7CB62E383}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D6B43C4-659D-40D5-87D9-6BC7CB62E383}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D6B43C4-659D-40D5-87D9-6BC7CB62E383}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{0C6F0A41-5F86-4CE7-9424-271228362E99} = {8FAC6F0E-1FBE-4658-8F5E-33919C6DDDDD}

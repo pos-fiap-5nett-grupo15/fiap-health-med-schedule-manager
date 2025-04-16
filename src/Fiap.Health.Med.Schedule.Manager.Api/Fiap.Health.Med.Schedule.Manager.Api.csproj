@@ -12,7 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Application\Fiap.Health.Med.Schedule.Manager.Application.csproj" />
+    <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.CrossCutting\Fiap.Health.Med.Schedule.Manager.CrossCutting.csproj" />
+    <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Domain\Fiap.Health.Med.Schedule.Manager.Domain.csproj" />
   </ItemGroup>
 
 </Project>
