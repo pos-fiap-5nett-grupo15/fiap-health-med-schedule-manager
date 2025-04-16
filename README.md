@@ -1,3 +1,18 @@
+
+## Build do projeto
+Vá até o diretório da solução e execute o seguinte comando para realizar o build da imagem docker a ser utilizada.
+
+``` shell
+    docker build -f ./src/Fiap.Health.Med.Schedule.Manager.Api/Dockerfile -t schedule-app .
+```
+
+Ou se estiver na pasta de infra
+
+``` shell
+    docker build -f ../fiap-health-med-schedule-manager/src/Fiap.Health.Med.Schedule.Manager.Api/Dockerfile -t schedule-app ../fiap-health-med-schedule-manager/
+```
+
+
 # Introduction 
 TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
 

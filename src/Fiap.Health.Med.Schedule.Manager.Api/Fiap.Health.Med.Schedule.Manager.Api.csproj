@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +16,12 @@
     <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Application\Fiap.Health.Med.Schedule.Manager.Application.csproj" />
     <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.CrossCutting\Fiap.Health.Med.Schedule.Manager.CrossCutting.csproj" />
     <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Domain\Fiap.Health.Med.Schedule.Manager.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
   </ItemGroup>
 
 </Project>
