@@ -11,8 +11,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentMigrator.Runner" Version="7.0.0" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.3" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Application\Fiap.Health.Med.Schedule.Manager.Application.csproj" />

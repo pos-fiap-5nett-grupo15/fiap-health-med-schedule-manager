@@ -4,6 +4,7 @@ using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.Migrations;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.UnitOfWork;
 using FluentMigrator.Runner;
+using MassTransit;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,5 +49,22 @@ public static class ServiceCollectionExtensions
             )
             .AddLogging(lb => lb.AddFluentMigratorConsole())
             .BuildServiceProvider(false);
+    }
+
+    public static IServiceCollection AddRabbitMqService(this IServiceCollection services)
+    {
+        services.AddMassTransit(configurator =>
+        {
+            configurator.UsingRabbitMq((context, factoryConfigurator) =>
+            {
+                factoryConfigurator.Host("amqp://localhost:5672", hostConfigurator =>
+                {
+                    hostConfigurator.Username("guest");
+                    hostConfigurator.Password("guest");
+                });
+                factoryConfigurator.ConfigureEndpoints(context);
+            });
+        });
+        return services;
     }
 }

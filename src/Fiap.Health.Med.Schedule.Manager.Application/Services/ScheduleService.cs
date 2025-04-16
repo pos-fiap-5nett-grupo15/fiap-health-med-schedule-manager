@@ -1,49 +1,102 @@
+using System.Net;
+using System.Text;
 using Fiap.Health.Med.Schedule.Manager.Application.Common;
 using Fiap.Health.Med.Schedule.Manager.Application.DTOs.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Domain.Enum;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
-using System.Net;
+using Fiap.Health.Med.Schedule.Manager.Infrastructure.Settings;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
 
 namespace Fiap.Health.Med.Schedule.Manager.Application.Services;
 
 public class ScheduleService : IScheduleService
 {
-    public IUnitOfWork UnitOfWork { get; set; }
-
-    public ScheduleService(IUnitOfWork unitOfWork)
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<ScheduleService> _logger;
+    private readonly IProducerSettings _producer;
+    
+    public ScheduleService(
+        IUnitOfWork unitOfWork,
+        IProducerSettings producer,
+        ILogger<ScheduleService> logger)
     {
-        this.UnitOfWork = unitOfWork;
+        this._unitOfWork = unitOfWork;
+        this._logger = logger;
+        this._producer = producer;
     }
-
+    
     public async Task<IEnumerable<Domain.Models.Schedule>> GetAsync(CancellationToken cancellationToken)
     {
-        return await this.UnitOfWork.ScheduleRepository.GetAsync(cancellationToken);
+        return await this._unitOfWork.ScheduleRepository.GetAsync(cancellationToken);
     }
 
-    public async Task CreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    public async Task HandleCreateAsync(CreateScheduleMessage? deserialize, CancellationToken cancellationToken)
     {
-        if (IsPassedTime(schedule, DateTime.Now) || IsPassedTime(schedule, DateTime.Now))
+        if(deserialize == null) throw new NullReferenceException();
+        var schedule = await this._unitOfWork.ScheduleRepository.GetScheduleByIdAsync(deserialize.Id, cancellationToken);
+        
+        if (IsPassedTime(schedule, DateTime.Now))
             throw new InvalidOperationException();
 
-        var dbModels = await this.GetScheduleByAsync(schedule.DoctorId, schedule.ScheduleTime, cancellationToken);
-
+        var dbModels 
+            = (await this.GetScheduleByAsync(schedule.DoctorId, schedule.ScheduleTime, cancellationToken)).Where( x => x.Status != EScheduleStatus.UNDEFINED );
+        
         var hasAnyOverlap = dbModels.Select(x => schedule.IsOverlappedBy(x)).Any(x => x == true);
-        if (hasAnyOverlap)
-            throw new InvalidOperationException();
+        
+        var newStatus = hasAnyOverlap ? EScheduleStatus.REFUSED : EScheduleStatus.CONFIRMED;
+        
+        await this._unitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(schedule.Id,newStatus, cancellationToken);
+    }
 
-        await this.UnitOfWork.ScheduleRepository.CreateScheduleAsync(schedule, cancellationToken);
+    public async Task<Result<int>> RequestCreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    {
+        try
+        {
+            schedule.Status = EScheduleStatus.UNDEFINED;
+            var id = await this._unitOfWork.ScheduleRepository.CreatePendingScheduleAsync(schedule, cancellationToken);
+            await PublishScheduleAsync(new CreateScheduleMessage(id), this._producer, cancellationToken);
+            return Result<int>.Success(HttpStatusCode.Created,id);
+        }
+        catch (Exception e)
+        {
+            this._logger.LogError(e, "An error occurring while creating schedule.");
+            throw;
+        }
+        
+    }
+    
+
+    public static async Task PublishScheduleAsync<T>(T message, IProducerSettings settings,
+        CancellationToken cancellationToken)
+    {
+        ConnectionFactory factory = new()
+        {
+            HostName = settings.Host,
+            Port = settings.Port,
+            UserName = settings.Username,
+            Password = settings.Password
+        };
+
+        using (IConnection connection = await factory.CreateConnectionAsync(cancellationToken))
+        using (IChannel channel = await connection.CreateChannelAsync(null, cancellationToken))
+        {
+            var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
+            await channel.BasicPublishAsync(settings.Exchange, settings.RoutingKey,new ReadOnlyMemory<byte>(body), cancellationToken);
+        }
     }
 
     public async Task<Result> RefuseScheduleAsync(long scheduleId, int doctorId, CancellationToken ct)
     {
-        (var schedule, var getScheduleError) = await this.UnitOfWork.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, ct);
+        (var schedule, var getScheduleError) = await this._unitOfWork.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, ct);
         if (!string.IsNullOrWhiteSpace(getScheduleError))
             return Result.Fail(HttpStatusCode.UnprocessableContent, getScheduleError);
 
         if (schedule is null)
             return Result.Fail(HttpStatusCode.NotFound, "Agendamento não encontrado.");
 
-        if (await this.UnitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.REFUSED, ct) is (var success, var updateError) && !success)
+        if (await this._unitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.REFUSED, ct) is (var success, var updateError) && !success)
             return Result.Fail(HttpStatusCode.UnprocessableContent, !string.IsNullOrWhiteSpace(updateError) ? updateError : "Um erro ocorreu ao atualizar status do Agendamento.");
 
         return Result.Success(HttpStatusCode.NoContent);
@@ -51,7 +104,7 @@ public class ScheduleService : IScheduleService
 
     public async Task<Result> AcceptScheduleAsync(long scheduleId, int doctorId, CancellationToken ct)
     {
-        (var schedule, var getScheduleError) = await this.UnitOfWork.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, ct);
+        (var schedule, var getScheduleError) = await this._unitOfWork.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, ct);
         if (!string.IsNullOrWhiteSpace(getScheduleError))
             return Result.Fail(HttpStatusCode.UnprocessableContent, getScheduleError);
 
@@ -62,19 +115,19 @@ public class ScheduleService : IScheduleService
         {
             if (schedule.ScheduleTime < DateTime.Now)
             {
-                if (await this.UnitOfWork.ScheduleRepository.DeleteScheduleStatusAsync(scheduleId, ct) is (var successDelete, var updateDeleteError) && !successDelete)
+                if (await this._unitOfWork.ScheduleRepository.DeleteScheduleStatusAsync(scheduleId, ct) is (var successDelete, var updateDeleteError) && !successDelete)
                     return Result.Fail(HttpStatusCode.UnprocessableContent, !string.IsNullOrWhiteSpace(updateDeleteError) ? updateDeleteError : "Um erro ocorreu ao excluir o Agendamento.");
             }
             else
             {
-                if (await this.UnitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.CONFIRMED, ct) is (var successConfirmed, var updateConfirmedError) && !successConfirmed)
+                if (await this._unitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.CONFIRMED, ct) is (var successConfirmed, var updateConfirmedError) && !successConfirmed)
                     return Result.Fail(HttpStatusCode.UnprocessableContent, !string.IsNullOrWhiteSpace(updateConfirmedError) ? updateConfirmedError : "Um erro ocorreu ao atualizar status para confirmar o Agendamento.");
             }
 
         }
         else if (schedule.Status == EScheduleStatus.CANCELED_BY_DOCTOR)
         {
-            if (await this.UnitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.REFUSED, ct) is (var successRefused, var updateRefusedError) && !successRefused)
+            if (await this._unitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(scheduleId, EScheduleStatus.REFUSED, ct) is (var successRefused, var updateRefusedError) && !successRefused)
                 return Result.Fail(HttpStatusCode.UnprocessableContent, !string.IsNullOrWhiteSpace(updateRefusedError) ? updateRefusedError : "Um erro ocorreu ao atualizar status para cancelar o Agendamento.");
         }
         else
@@ -106,7 +159,7 @@ public class ScheduleService : IScheduleService
                 return Result.Fail(HttpStatusCode.BadRequest, "Data do agendamento em conflito com data(s) existente(s)");
         }
 
-        if (await this.UnitOfWork.ScheduleRepository.UpdateScheduleAsync(foundSchedule, cancellationToken) > 0)
+        if (await this._unitOfWork.ScheduleRepository.UpdateScheduleAsync(foundSchedule, cancellationToken) > 0)
             return Result.Success(HttpStatusCode.OK);
         else
             return Result.Fail(HttpStatusCode.InternalServerError, "Erro ao atualizar o agendamento");
@@ -117,11 +170,11 @@ public class ScheduleService : IScheduleService
         => schedule.ScheduleTime <= reference;
     private async Task<IEnumerable<Domain.Models.Schedule>> GetScheduleByAsync(int doctorId, DateTime scheduleTime, CancellationToken cancellationToken)
     {
-        return await this.UnitOfWork.ScheduleRepository.GetScheduleByDoctorIdAsync(doctorId, cancellationToken);
+        return await this._unitOfWork.ScheduleRepository.GetScheduleByDoctorIdAsync(doctorId, cancellationToken);
     }
     private async Task<Domain.Models.Schedule?> GetScheduleByIdAsync(long scheduleId, CancellationToken cancellationToken)
     {
-        return await this.UnitOfWork.ScheduleRepository.GetScheduleByIdAsync(scheduleId, cancellationToken);
+        return await this._unitOfWork.ScheduleRepository.GetScheduleByIdAsync(scheduleId, cancellationToken);
     }
     #endregion Private methods.
 }
