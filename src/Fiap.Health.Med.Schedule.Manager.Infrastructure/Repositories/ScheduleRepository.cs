@@ -123,4 +123,33 @@ public class ScheduleRepository : IScheduleRepository
                        WHERE Id = @Id";
         return await _database.Connection.ExecuteAsync(query, schedule);
     }
+
+    public async Task<int> ScheduleToPatientAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    {
+        var query = @$"UPDATE Schedule.Schedule 
+                       SET
+                        {nameof(Domain.Models.Schedule.PatientId)} = @PatientId,
+                        {nameof(Domain.Models.Schedule.Status)} = @Status
+                       WHERE Id = @Id";
+
+        return await _database.Connection.ExecuteAsync(query, schedule);
+    }
+
+    public async Task<IEnumerable<Domain.Models.Schedule>> GetSchedulesByPatientIdAsync(int patientId, CancellationToken cancellationToken)
+    {
+        var query = @$"SELECT * FROM Schedule.Schedule WHERE PatientId = @PatientId";
+
+        return await _database.Connection.QueryAsync<Domain.Models.Schedule>(query, new { PatientId = patientId });
+    }
+
+    public async Task<int> CancelScheduleAsync(Domain.Models.Schedule schedule, CancellationToken ct)
+    {
+        var query = $@"UPDATE Schedule.Schedule 
+                       SET
+                        {nameof(Domain.Models.Schedule.Status)} = @Status,
+                        {nameof(Domain.Models.Schedule.CancelReason)} = @CancelReason
+                       WHERE Id = @Id";
+
+        return await _database.Connection.ExecuteAsync(query, schedule);
+    }
 }

@@ -1,11 +1,9 @@
-using Fiap.Health.Med.Schedule.Manager.Application.DTOs.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.Migrations;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.UnitOfWork;
 using FluentMigrator.Runner;
 using MassTransit;
-using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,3 +1,4 @@
+using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Doctor.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -22,11 +23,33 @@ public class ScheduleController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetByIdAsync(long id, CancellationToken cancellationToken)
+    {
+        var result = await this.ScheduleService.GetByScheduleId(id, cancellationToken);
+
+        if (result.IsSuccess)
+            return Ok(result.Data);
+        else
+            return StatusCode((int)result.StatusCode, result.Errors);
+    }
+
+    [HttpGet("doctor/{doctorId}")]
+    public async Task<IActionResult> GetByDoctorAsync(int doctorId, CancellationToken cancellationToken)
+    {
+        var result = await this.ScheduleService.GetByDoctorId(doctorId, cancellationToken);
+
+        if (result.IsSuccess)
+            return Ok(result.Data);
+        else
+            return StatusCode((int)result.StatusCode, result.Errors);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Domain.Models.Schedule schedule, CancellationToken cancellationToken)
     {
-        var result =  await this.ScheduleService.RequestCreateScheduleAsync(schedule, cancellationToken);
-        return StatusCode((int) result.StatusCode, result.Errors);
+        var result = await this.ScheduleService.RequestCreateScheduleAsync(schedule, cancellationToken);
+        return StatusCode((int)result.StatusCode, result.Errors);
     }
 
     [HttpPatch("refuse/{scheduleId}/{doctorId}")]
@@ -40,15 +63,16 @@ public class ScheduleController : ControllerBase
         return StatusCode((int)result.StatusCode, result.Errors);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateSchedule(int id, [FromBody] Application.DTOs.UpdateSchedule.UpdateScheduleRequestDto updateSchedule, CancellationToken cancellationToken)
+    [HttpPut("{scheduleId}/{doctorId}")]
+    public async Task<IActionResult> UpdateSchedule(int scheduleId, int doctorId, [FromBody] UpdateScheduleRequestDto updateSchedule, CancellationToken cancellationToken)
     {
         try
         {
-            if (updateSchedule is null)
-                return BadRequest("Dados vazios não são permitidos");
-            else
-                updateSchedule.Id = id;
+            updateSchedule.ScheduleId = scheduleId;
+            updateSchedule.DoctorId = doctorId;
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             var result = await this.ScheduleService.UpdateScheduleAsync(updateSchedule, cancellationToken);
             if (result.IsSuccess)
