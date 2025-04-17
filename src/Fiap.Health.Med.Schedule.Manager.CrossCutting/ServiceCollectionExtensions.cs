@@ -51,18 +51,18 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRabbitMqService(this IServiceCollection services)
     {
-        services.AddMassTransit(configurator =>
-        {
-            configurator.UsingRabbitMq((context, factoryConfigurator) =>
-            {
-                factoryConfigurator.Host("amqp://localhost:5672", hostConfigurator =>
-                {
-                    hostConfigurator.Username("guest");
-                    hostConfigurator.Password("guest");
-                });
-                factoryConfigurator.ConfigureEndpoints(context);
-            });
-        });
+        // services.AddMassTransit(configurator =>
+        // {
+        //     configurator.UsingRabbitMq((context, factoryConfigurator) =>
+        //     {
+        //         factoryConfigurator.Host("amqp://localhost:5672", hostConfigurator =>
+        //         {
+        //             hostConfigurator.Username("guest");
+        //             hostConfigurator.Password("guest");
+        //         });
+        //         factoryConfigurator.ConfigureEndpoints(context);
+        //     });
+        // });
         return services;
     }
 }
