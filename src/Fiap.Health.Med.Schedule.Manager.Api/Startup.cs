@@ -2,6 +2,8 @@ using Fiap.Health.Med.Schedule.Manager.CrossCutting;
 using Microsoft.OpenApi.Models;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IWebHostEnvironment;
 
+namespace Fiap.Health.Med.Schedule.Manager.Api;
+
 internal class Startup
 {
     public IConfiguration Configuration { get; set; }
@@ -21,8 +23,9 @@ internal class Startup
         services.AddControllers();
         services.AddDataServices();
         services.AddServices();
+        services.AddRabbitMqService();
     }
-    
+
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
     {
         // Configure the HTTP request pipeline.
