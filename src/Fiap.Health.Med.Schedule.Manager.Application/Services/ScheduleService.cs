@@ -88,7 +88,7 @@ public class ScheduleService : IScheduleService
         }
     }
 
-    public async Task<Result> RefuseScheduleAsync(long scheduleId, int doctorId, CancellationToken ct)
+    public async Task<Result> DeclineScheduleAsync(long scheduleId, int doctorId, CancellationToken ct)
     {
         (var schedule, var getScheduleError) = await this._unitOfWork.ScheduleRepository.GetScheduleByIdAndDoctorIdAsync(scheduleId, doctorId, ct);
         if (!string.IsNullOrWhiteSpace(getScheduleError))

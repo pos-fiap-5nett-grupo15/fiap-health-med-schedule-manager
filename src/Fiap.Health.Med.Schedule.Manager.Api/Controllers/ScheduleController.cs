@@ -1,3 +1,4 @@
+using Fiap.Health.Med.Schedule.Manager.Application.Common;
 using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Doctor.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -52,15 +53,20 @@ public class ScheduleController : ControllerBase
         return StatusCode((int)result.StatusCode, result.Errors);
     }
 
-    [HttpPatch("refuse/{scheduleId}/{doctorId}")]
-    public async Task<IActionResult> RefuseScheduleAsync(
+    [HttpPatch("{scheduleId}/decline/{doctorId}")]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DeclineScheduleAsync(
         [FromRoute] long scheduleId,
         [FromRoute] int doctorId,
         CancellationToken ct)
     {
-        var result = await this.ScheduleService.RefuseScheduleAsync(scheduleId, doctorId, ct);
+        var result = await this.ScheduleService.DeclineScheduleAsync(scheduleId, doctorId, ct);
 
-        return StatusCode((int)result.StatusCode, result.Errors);
+        if (result.IsSuccess)
+            return Ok(result);
+
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpPut("{scheduleId}/{doctorId}")]
