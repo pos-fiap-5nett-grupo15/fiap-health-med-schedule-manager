@@ -1,5 +1,5 @@
-﻿
-using Fiap.Health.Med.Schedule.Manager.Application.DTOs.UpdateSchedule;
+﻿using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Doctor.UpdateSchedule;
+using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Patient;
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
 using Fiap.Health.Med.Schedule.Manager.Domain.Enum;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
@@ -41,7 +41,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), CancellationToken.None)).ReturnsAsync(model);
 
             //act
-            var act = async () => await this._target.HandleCreateAsync(new CreateScheduleMessage(123),CancellationToken.None);
+            var act = async () => await this._target.HandleCreateAsync(new CreateScheduleMessage(123), CancellationToken.None);
 
             //assert
             await act.Should().NotThrowAsync<Exception>();
@@ -271,7 +271,8 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             //set
             var updateScheduleRequestDto = new UpdateScheduleRequestDto()
             {
-                Id = 1,
+                ScheduleId = 1,
+                DoctorId = 1,
                 ScheduleTime = DateTime.Now.AddHours(1)
             };
             this._unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), CancellationToken.None)).ReturnsAsync((Domain.Models.Schedule?)null);
@@ -285,12 +286,13 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
         }
 
         [Fact]
-        public async Task UpdateSchedule_WhenDataIsCorrect_ShoudReturnSuccess()
+        public async Task UpdateSchedule_WhenDataIsCorrect_ShouldReturnSuccess()
         {
             //set
             var updateScheduleRequestDto = new UpdateScheduleRequestDto()
             {
-                Id = 1,
+                ScheduleId = 1,
+                DoctorId = 1,
                 ScheduleTime = DateTime.Now.AddHours(4)
             };
 
@@ -308,12 +310,13 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
         }
 
         [Fact]
-        public async Task UpdateSchedule_WhenHasOverlap_ShoudReturnErrorWithMessage()
+        public async Task UpdateSchedule_WhenHasOverlap_ShouldReturnErrorWithMessage()
         {
             //set
             var updateScheduleRequestDto = new UpdateScheduleRequestDto()
             {
-                Id = 1,
+                ScheduleId = 1,
+                DoctorId = 1,
                 ScheduleTime = DateTime.Now.AddHours(4)
             };
 
@@ -356,6 +359,200 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
             Assert.Contains("Data do agendamento em conflito com data(s) existente(s)", result.Errors);
+        }
+
+        [Fact]
+        public async Task ScheduleToPatient_WhenScheduleDoesNotExists_ShouldReturnFailure()
+        {
+            //set
+            var request = new PatientScheduleRequestDto()
+            {
+                ScheduleId = 1,
+                PatientId = 1
+            };
+
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default)).ReturnsAsync((Domain.Models.Schedule?)null);
+
+            //act
+            var result = await _target.ScheduleToPatientAsync(request, default);
+
+            //assert
+            Assert.False(result.IsSuccess);
+            Assert.Contains(result.Errors, x => x == "Agendamento não encontrado");
+        }
+
+        [Fact]
+        public async Task ScheduleToPatient_WhenScheduleIsNotAvailable_ShouldReturnFailure()
+        {
+            //set
+            var request = new PatientScheduleRequestDto()
+            {
+                ScheduleId = 1,
+                PatientId = 1
+            };
+
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
+                           .ReturnsAsync(new Domain.Models.Schedule()
+                           {
+                               ScheduleTime = DateTime.Now.AddHours(2),
+                               Status = EScheduleStatus.CONFIRMED
+                           });
+
+            //act
+            var result = await _target.ScheduleToPatientAsync(request, default);
+
+            //assert
+            Assert.False(result.IsSuccess);
+            Assert.Contains(result.Errors, x => x == "Agendamento indisponível");
+        }
+
+        [Fact]
+        public async Task ScheduleToPatient_WhenRequestDataIsCorrect_ShouldReturnSuccess()
+        {
+            //set
+            var request = new PatientScheduleRequestDto()
+            {
+                ScheduleId = 1,
+                PatientId = 1
+            };
+
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
+                           .ReturnsAsync(new Domain.Models.Schedule()
+                           {
+                               ScheduleTime = DateTime.Now.AddHours(2),
+                               Status = EScheduleStatus.AVAILABLE
+                           });
+
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.ScheduleToPatientAsync(It.IsAny<Domain.Models.Schedule>(), default))
+                           .ReturnsAsync(1);
+
+            //act
+            var result = await _target.ScheduleToPatientAsync(request, default);
+
+            //assert
+            Assert.True(result.IsSuccess);
+        }
+
+        [Fact]
+        public async Task CancelSchedule_WhenScheduleDoesNotExists_ShouldReturnFailure()
+        {
+            //set
+            var request = new CancelScheduleRequestDto()
+            {
+                ScheduleId = 1,
+                PatientId = 1,
+                Reason = "Motivo de cancelamento"
+            };
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default)).ReturnsAsync((Domain.Models.Schedule?)null);
+
+            //act
+            var result = await _target.CancelScheduleAsync(request, default);
+
+            //assert
+            Assert.False(result.IsSuccess);
+            Assert.Contains(result.Errors, x => x == "Agendamento não encontrado");
+        }
+
+        [Fact]
+        public async Task CancelSchedule_WhenScheduleIsInThePast_ShouldReturnFailure()
+        {
+            //set
+            var request = new CancelScheduleRequestDto()
+            {
+                ScheduleId = 1,
+                PatientId = 1,
+                Reason = "Motivo de cancelamento"
+            };
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
+                           .ReturnsAsync(new Domain.Models.Schedule
+                           {
+                               ScheduleTime = DateTime.Now.AddHours(-1)
+                           });
+
+            //act
+            var result = await _target.CancelScheduleAsync(request, default);
+
+            //assert
+            Assert.False(result.IsSuccess);
+            Assert.Contains(result.Errors, x => x == "Agendamento já realizado");
+        }
+
+        [Fact]
+        public async Task CancelSchedule_WhenScheduleIsReservedByOtherPatient_ShouldReturnFailure()
+        {
+            //set
+            var request = new CancelScheduleRequestDto()
+            {
+                ScheduleId = 1,
+                PatientId = 1,
+                Reason = "Motivo de cancelamento"
+            };
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
+                           .ReturnsAsync(new Domain.Models.Schedule
+                           {
+                               PatientId = 2,
+                               ScheduleTime = DateTime.Now.AddHours(2)
+                           });
+
+            //act
+            var result = await _target.CancelScheduleAsync(request, default);
+
+            //assert
+            Assert.False(result.IsSuccess);
+            Assert.Contains(result.Errors, x => x == "Agendamento não pertence ao paciente informado");
+        }
+
+        [Fact]
+        public async Task CancelSchedule_WhenScheduleIsNotBooked_ShouldReturnFailure()
+        {
+            //set
+            var request = new CancelScheduleRequestDto()
+            {
+                ScheduleId = 1,
+                PatientId = 1,
+                Reason = "Motivo de cancelamento"
+            };
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
+                           .ReturnsAsync(new Domain.Models.Schedule
+                           {
+                               PatientId = 1,
+                               ScheduleTime = DateTime.Now.AddHours(2),
+                               Status = EScheduleStatus.AVAILABLE
+                           });
+
+            //act
+            var result = await _target.CancelScheduleAsync(request, default);
+
+            //assert
+            Assert.False(result.IsSuccess);
+            Assert.Contains(result.Errors, x => x == "Agendamento não reservado anteriormente, não pode ser cancelado");
+        }
+
+        [Fact]
+        public async Task CancelSchedule_WhenRequestDataIsCorrect_ShouldReturnFailure()
+        {
+            //set
+            var request = new CancelScheduleRequestDto()
+            {
+                ScheduleId = 1,
+                PatientId = 1,
+                Reason = "Motivo de cancelamento"
+            };
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
+                           .ReturnsAsync(new Domain.Models.Schedule
+                           {
+                               PatientId = 1,
+                               ScheduleTime = DateTime.Now.AddHours(2),
+                               Status = EScheduleStatus.CONFIRMED
+                           });
+
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.CancelScheduleAsync(It.IsAny<Domain.Models.Schedule>(), default)).ReturnsAsync(1);
+
+            //act
+            var result = await _target.CancelScheduleAsync(request, default);
+
+            //assert
+            Assert.True(result.IsSuccess);
         }
     }
 
