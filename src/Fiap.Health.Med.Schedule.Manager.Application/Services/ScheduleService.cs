@@ -34,11 +34,20 @@ public class ScheduleService : IScheduleService
 
     public async Task HandleCreateAsync(CreateScheduleMessage? deserialize, CancellationToken cancellationToken)
     {
-        if(deserialize == null) throw new NullReferenceException();
+        this._logger.LogInformation("Begin handling CreateScheduleMessage");
+        if (deserialize == null)
+        {
+            this._logger.LogError("CreateScheduleMessage is null");
+            throw new NullReferenceException();
+        }
+
         var schedule = await this._unitOfWork.ScheduleRepository.GetScheduleByIdAsync(deserialize.Id, cancellationToken);
-        
+
         if (IsPassedTime(schedule, DateTime.Now))
+        {
+            this._logger.LogInformation("CreateScheduleMessage has been passed");
             throw new InvalidOperationException();
+        }
 
         var dbModels 
             = (await this.GetScheduleByAsync(schedule.DoctorId, schedule.ScheduleTime, cancellationToken)).Where( x => x.Status != EScheduleStatus.UNDEFINED );
@@ -46,8 +55,11 @@ public class ScheduleService : IScheduleService
         var hasAnyOverlap = dbModels.Select(x => schedule.IsOverlappedBy(x)).Any(x => x == true);
         
         var newStatus = hasAnyOverlap ? EScheduleStatus.REFUSED : EScheduleStatus.CONFIRMED;
+        this._logger.LogInformation($"CreateScheduleMessage has been {newStatus}");
         
         await this._unitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(schedule.Id,newStatus, cancellationToken);
+        this._logger.LogInformation("Status was updated");
+
     }
 
     public async Task<Result<int>> RequestCreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
@@ -166,8 +178,11 @@ public class ScheduleService : IScheduleService
     }
 
     #region Private methods:
+
     private static bool IsPassedTime(Domain.Models.Schedule schedule, DateTime reference)
-        => schedule.ScheduleTime <= reference;
+    {
+        return schedule.ScheduleTime <= reference;
+    }
     private async Task<IEnumerable<Domain.Models.Schedule>> GetScheduleByAsync(int doctorId, DateTime scheduleTime, CancellationToken cancellationToken)
     {
         return await this._unitOfWork.ScheduleRepository.GetScheduleByDoctorIdAsync(doctorId, cancellationToken);

@@ -10,6 +10,8 @@ Ou se estiver na pasta de infra
 
 ``` shell
     docker build -f ../fiap-health-med-schedule-manager/src/Fiap.Health.Med.Schedule.Manager.Api/Dockerfile -t schedule-app ../fiap-health-med-schedule-manager/
+
+    docker build -f ../fiap-health-med-schedule-manager/src/Fiap.Health.Med.Schedule.Manager.Worker/Dockerfile -t schedule-worker ../fiap-health-med-schedule-manager/
 ```
 
 
