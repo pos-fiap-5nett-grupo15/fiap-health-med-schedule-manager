@@ -15,7 +15,7 @@ variables:
 
 stages:
 - stage: Preflight
-  diplayName: Build and Test API
+  displayName: Build and Test API
   jobs:
   - job: Build
     displayName: Build
