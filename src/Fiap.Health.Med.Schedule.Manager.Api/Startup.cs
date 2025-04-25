@@ -1,4 +1,5 @@
 using Fiap.Health.Med.Schedule.Manager.CrossCutting;
+using Fiap.Health.Med.Schedule.Manager.Infrastructure.Settings;
 using Microsoft.OpenApi.Models;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IWebHostEnvironment;
 

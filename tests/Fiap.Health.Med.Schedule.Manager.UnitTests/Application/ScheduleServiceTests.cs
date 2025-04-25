@@ -1,6 +1,7 @@
 ﻿using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Doctor.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Patient;
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
+using Fiap.Health.Med.Schedule.Manager.Application.Services.QueueMessages;
 using Fiap.Health.Med.Schedule.Manager.Domain.Enum;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.Settings;
@@ -374,7 +375,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default)).ReturnsAsync((Domain.Models.Schedule?)null);
 
             //act
-            var result = await _target.ScheduleToPatientAsync(request, default);
+            var result = await _target.RequestScheduleToPatientAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -399,7 +400,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            });
 
             //act
-            var result = await _target.ScheduleToPatientAsync(request, default);
+            var result = await _target.RequestScheduleToPatientAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -427,7 +428,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            .ReturnsAsync(1);
 
             //act
-            var result = await _target.ScheduleToPatientAsync(request, default);
+            var result = await _target.RequestScheduleToPatientAsync(request, default);
 
             //assert
             Assert.True(result.IsSuccess);
@@ -446,7 +447,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default)).ReturnsAsync((Domain.Models.Schedule?)null);
 
             //act
-            var result = await _target.CancelScheduleAsync(request, default);
+            var result = await _target.RequestCancelScheduleAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -470,7 +471,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            });
 
             //act
-            var result = await _target.CancelScheduleAsync(request, default);
+            var result = await _target.RequestCancelScheduleAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -495,7 +496,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            });
 
             //act
-            var result = await _target.CancelScheduleAsync(request, default);
+            var result = await _target.RequestCancelScheduleAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -521,7 +522,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            });
 
             //act
-            var result = await _target.CancelScheduleAsync(request, default);
+            var result = await _target.RequestCancelScheduleAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -549,7 +550,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             _unitOfWorkMock.Setup(x => x.ScheduleRepository.CancelScheduleAsync(It.IsAny<Domain.Models.Schedule>(), default)).ReturnsAsync(1);
 
             //act
-            var result = await _target.CancelScheduleAsync(request, default);
+            var result = await _target.RequestCancelScheduleAsync(request, default);
 
             //assert
             Assert.True(result.IsSuccess);

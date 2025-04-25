@@ -4,24 +4,24 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Fiap.Health.Med.Schedule.Manager.Api.Controllers
 {
-    [Route("api/Patient")]
+    [Route("api/patient")]
     [ApiController()]
-    public class PatientSchedule : ControllerBase
+    public class PatientScheduleController : ControllerBase
     {
         private IScheduleService ScheduleService { get; set; }
 
-        public PatientSchedule(IScheduleService patientScheduleService)
+        public PatientScheduleController(IScheduleService patientScheduleService)
         {
             this.ScheduleService = patientScheduleService;
         }
 
-        [HttpPost]
+        [HttpPost("request-schedule")]
         public async Task<IActionResult> RequestScheduleAsync([FromBody] PatientScheduleRequestDto patientScheduleData, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await this.ScheduleService.ScheduleToPatientAsync(patientScheduleData, cancellationToken);
+            var result = await this.ScheduleService.RequestScheduleToPatientAsync(patientScheduleData, cancellationToken);
 
             if (result.IsSuccess)
                 return Created();
@@ -38,7 +38,7 @@ namespace Fiap.Health.Med.Schedule.Manager.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await this.ScheduleService.CancelScheduleAsync(patientCancelData, cancellationToken);
+            var result = await this.ScheduleService.RequestCancelScheduleAsync(patientCancelData, cancellationToken);
 
             if (result.IsSuccess)
                 return NoContent();
