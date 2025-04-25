@@ -27,7 +27,9 @@ stages:
         script: |
           echo Show ws files.
           echo $(ls)
-          echo $($(System.DefaultWorkingDirectory)/src)
+          echo $(ls $(System.DefaultWorkingDirectory)/src)
+          cd $(System.DefaultWorkingDirectory)/src
+          echo $(ls)
 
     - task: DotNetCoreCLI@2
       inputs:
