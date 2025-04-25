@@ -27,6 +27,8 @@ stages:
         script: |
           echo Show ws files.
           echo $(ls)
+          echo $($(System.DefaultWorkingDirectory)/src)
+
     - task: DotNetCoreCLI@2
       inputs:
         command: 'build'
