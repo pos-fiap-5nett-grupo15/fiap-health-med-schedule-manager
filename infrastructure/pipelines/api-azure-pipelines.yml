@@ -1,0 +1,29 @@
+trigger:
+  branches:
+    include:
+      - feat/pipelines
+  paths:
+    exclude:
+      - README.md
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Preflight
+  diplayName: Build and Test API
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: |
+          echo Show ws files.
+          echo $(ls)
