@@ -27,3 +27,7 @@ stages:
         script: |
           echo Show ws files.
           echo $(ls)
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
+        projects: '$(System.DefaultWorkingDirectory)\src\Fiap.Health.Med.Schedule.Manager.Api\Fiap.Health.Med.Schedule.Manager.Api.csproj'
