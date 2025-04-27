@@ -71,6 +71,7 @@ stages:
         repository: $(imageRepository)
         dockerfile: $(dockerfilePath)
         containerRegistry: $(dockerRegistryServiceConnection)
+        buildContext: $(System.DefaultWorkingDirectory)
         tags: |
           $(tag)
           latest
