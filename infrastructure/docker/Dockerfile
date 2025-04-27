@@ -24,7 +24,7 @@ RUN dotnet publish "Fiap.Health.Med.Schedule.Manager.Api.csproj" -c $BUILD_CONFI
 FROM base AS final
 WORKDIR /app
 USER root
-COPY src/wait-for-it.sh .
+COPY infrastructure/docker/wait-for-it.sh .
 RUN chmod +x wait-for-it.sh
 USER $APP_UID
 

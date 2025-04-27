@@ -3,7 +3,7 @@
 Vá até o diretório da solução e execute o seguinte comando para realizar o build da imagem docker a ser utilizada.
 
 ``` shell
-    docker build -f ./src/Fiap.Health.Med.Schedule.Manager.Api/Dockerfile -t schedule-app .
+    docker build -f ./infrastructure/docker/Dockerfile -t schedule-app .
 ```
 
 Ou se estiver na pasta de infra
