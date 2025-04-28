@@ -39,7 +39,7 @@ public class Worker : BackgroundService
 
             if (Encoding.UTF8.GetString(body) is var message)
             {
-                Console.WriteLine($"Received message: {message}");
+                Console.WriteLine($"Received  message: {message}");
 
                 using (var scope = this._serviceProvider.CreateScope())
                 {
