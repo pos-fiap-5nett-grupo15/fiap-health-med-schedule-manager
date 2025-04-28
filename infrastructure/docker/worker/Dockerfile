@@ -18,6 +18,7 @@ FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./Fiap.Health.Med.Schedule.Manager.Worker.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
+
 FROM base AS final
 WORKDIR /app
 USER root
