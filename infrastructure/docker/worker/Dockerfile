@@ -21,7 +21,7 @@ RUN dotnet publish "./Fiap.Health.Med.Schedule.Manager.Worker.csproj" -c $BUILD_
 FROM base AS final
 WORKDIR /app
 USER root
-COPY src/wait-for-it.sh .
+COPY infrastructure/docker/wait-for-it.sh .
 RUN chmod +x wait-for-it.sh
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Fiap.Health.Med.Schedule.Manager.Worker.dll"]

@@ -1,0 +1,77 @@
+trigger:
+  branches:
+    include:
+      - feat/pipelines
+  paths:
+    exclude:
+      - README.md
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+  vmImageName: 'ubuntu-latest'
+  dockerRegistryServiceConnection: $(_dockerRegistryServiceConnection)
+  imageRepository: $(_imageRepository)
+  containerRegistry: $(_containerRegistry)
+  dockerfilePath: $(System.DefaultWorkingDirectory)/infrastructure/docker/worker/Dockerfile
+
+stages:
+- stage: Preflight
+  displayName: Build and Test API
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: |
+          echo Show ws files.
+          echo $(ls)
+          echo $(ls $(System.DefaultWorkingDirectory)/src)
+          cd $(System.DefaultWorkingDirectory)/src
+          echo $(ls)
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
+        projects: '$(System.DefaultWorkingDirectory)/src/Fiap.Health.Med.Schedule.Manager.Api/Fiap.Health.Med.Schedule.Manager.Worker.csproj'
+  - job: Tests
+    displayName: Tests
+    dependsOn: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'test'
+        projects: '$(System.DefaultWorkingDirectory)/tests/Fiap.Health.Med.Schedule.Manager.UnitTests/Fiap.Health.Med.Schedule.Manager.UnitTests.csproj'
+
+- stage: Build
+  displayName: Build and push stage
+  dependsOn: Preflight
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: |
+          echo Show ws files.
+          echo $(ls)
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        buildContext: $(System.DefaultWorkingDirectory)
+        tags: |
+          $(tag)
+          latest
