@@ -5,7 +5,10 @@ trigger:
   paths:
     exclude:
       - README.md
-
+      - infrastructure/pipelines/worker-azure-pipelines.yml
+      - infrastructure/docker/api/Dockerfile
+      - scr/Fiap.Health.Med.Schedule.Manager.Api
+      
 resources:
 - repo: self
 
