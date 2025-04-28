@@ -22,7 +22,7 @@ variables:
 
 stages:
 - stage: Preflight
-  displayName: Build and Test API
+  displayName: Build and Test Worker
   jobs:
   - job: Build
     displayName: Build
@@ -41,7 +41,7 @@ stages:
     - task: DotNetCoreCLI@2
       inputs:
         command: 'build'
-        projects: '$(System.DefaultWorkingDirectory)/src/Fiap.Health.Med.Schedule.Manager.Api/Fiap.Health.Med.Schedule.Manager.Worker.csproj'
+        projects: '$(System.DefaultWorkingDirectory)/src/Fiap.Health.Med.Schedule.Manager.Worker/Fiap.Health.Med.Schedule.Manager.Worker.csproj'
   - job: Tests
     displayName: Tests
     dependsOn: Build
