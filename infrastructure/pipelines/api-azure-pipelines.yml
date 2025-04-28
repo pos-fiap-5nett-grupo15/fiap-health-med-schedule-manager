@@ -5,7 +5,8 @@ trigger:
   paths:
     exclude:
       - README.md
-
+      - infrastructure/pipelines/worker-azure-pipelines.yml
+      - infrastructure/docker/worker/Dockerfile
 resources:
 - repo: self
 
@@ -15,7 +16,7 @@ variables:
   dockerRegistryServiceConnection: $(_dockerRegistryServiceConnection)
   imageRepository: $(_imageRepository)
   containerRegistry: $(_containerRegistry)
-  dockerfilePath: $(System.DefaultWorkingDirectory)/infrastructure/docker/Dockerfile
+  dockerfilePath: $(System.DefaultWorkingDirectory)/infrastructure/docker/api/Dockerfile
 
 stages:
 - stage: Preflight
