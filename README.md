@@ -1,4 +1,6 @@
 
+testes
+
 ## Build do projeto
 Vá até o diretório da solução e execute o seguinte comando para realizar o build da imagem docker a ser utilizada.
 
