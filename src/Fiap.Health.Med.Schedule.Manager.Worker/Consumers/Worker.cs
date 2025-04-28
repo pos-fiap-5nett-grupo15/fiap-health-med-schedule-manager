@@ -33,7 +33,7 @@ public class Worker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var consumer = new AsyncEventingBasicConsumer(this._channel);
-        consumer.ReceivedAsync += async (_, eventArgs) => 
+        consumer.ReceivedAsync += async (_, eventArgs) =>
         {
             var body = eventArgs.Body.ToArray();
 
