@@ -17,6 +17,56 @@ Ou se estiver na pasta de infra
 ```
 
 
+## Testar deployment como Minikube
+
+### Instalação
+Instale o minikube no WSL seguindo instalação linux no [link](https://minikube.sigs.k8s.io/docs/start/?arch=%2Flinux%2Fx86-64%2Fstable%2Fdebian+package)
+
+
+### Configuração do Minikube
+Passos para Configurar o kubectl com Minikube
+
+
+#### Inicie o Minikube:
+
+Primeiro, certifique-se de que o Minikube está instalado e inicie o cluster Minikube com o seguinte comando:
+```shell
+minikube start
+```
+
+Para testar se o minikube está na lista de clusters use o seguinte comando:
+```shell
+kubectl config get-clusters
+```
+
+#### Configure o kubectl para Usar o Minikube:
+
+O Minikube automaticamente configura o kubectl para usar o contexto do Minikube quando você inicia o cluster. No entanto, se você precisar configurar manualmente ou verificar a configuração, use o seguinte comando:
+
+```shell
+kubectl config use-context minikube
+```
+
+#### Verifique a Configuração Atual:
+
+Para verificar se o kubectl está configurado corretamente para usar o Minikube, você pode listar os contextos disponíveis e verificar qual está ativo:
+
+```shell
+kubectl config get-contexts
+```
+
+O contexto ativo será marcado com um asterisco (*). Certifique-se de que o contexto minikube está ativo.
+Teste a Conexão com o Cluster:
+
+Para garantir que o kubectl está se comunicando corretamente com o Minikube, você pode executar um comando simples, como listar os nós do cluster:
+```shell
+kubectl get nodes
+```
+Isso deve retornar informações sobre o nó do Minikube.
+
+
+
+
 # Introduction 
 TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
 
