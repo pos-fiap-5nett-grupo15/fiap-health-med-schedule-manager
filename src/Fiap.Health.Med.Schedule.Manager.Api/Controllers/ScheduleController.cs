@@ -92,7 +92,9 @@ public class ScheduleController : ControllerBase
         }
     }
 
-    [HttpPatch("accept/{scheduleId}/{doctorId}")]
+    [HttpPatch("{scheduleId}/accept/{doctorId}")]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AcceptScheduleAsync(
         [FromRoute] long scheduleId,
         [FromRoute] int doctorId,
