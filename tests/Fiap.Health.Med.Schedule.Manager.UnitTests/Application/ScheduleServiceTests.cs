@@ -423,10 +423,10 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            .ReturnsAsync(1);
 
             //act
-            var act = async () => await _target.HandlePatientRequesSchedule(request, default);
+            var response = await _target.HandlePatientRequesSchedule(request, default);
 
             //assert
-            await act.Should().NotThrowAsync<Exception>();
+            Assert.True(response);
         }
 
         [Fact]
@@ -576,10 +576,10 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             _unitOfWorkMock.Setup(x => x.ScheduleRepository.CancelScheduleAsync(It.IsAny<Domain.Models.Schedule>(), default)).ReturnsAsync(1);
 
             //act
-            var act = async () => await _target.HandleCancelScheduleRequest(request, default);
+            var result = await _target.HandleCancelScheduleRequest(request, default);
 
             //assert
-            await act.Should().NotThrowAsync<Exception>();
+            Assert.True(result);
         }
 
         [Fact]

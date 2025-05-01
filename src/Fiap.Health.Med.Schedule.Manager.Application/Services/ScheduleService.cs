@@ -261,7 +261,7 @@ public class ScheduleService : IScheduleService
 
     }
 
-    public async Task HandlePatientRequesSchedule(RequestPatientScheduleMessage? requestMessage, CancellationToken cancellationToken)
+    public async Task<bool> HandlePatientRequesSchedule(RequestPatientScheduleMessage? requestMessage, CancellationToken cancellationToken)
     {
         this._logger.LogInformation("Begin handling RequestPatientScheduleMessage");
         if (requestMessage is null)
@@ -276,10 +276,13 @@ public class ScheduleService : IScheduleService
 
         schedule.PatientId = requestMessage.PatientId;
         schedule.Status = EScheduleStatus.PENDING_CONFIRMATION;
-        await this._unitOfWork.ScheduleRepository.ScheduleToPatientAsync(schedule, cancellationToken);
+        if (await this._unitOfWork.ScheduleRepository.ScheduleToPatientAsync(schedule, cancellationToken) <= 0)
+            throw new InvalidOperationException("Unkown database error");
+        else
+            return true;
     }
 
-    public async Task HandleCancelScheduleRequest(PatientCancelScheduleMessage? requestMessage, CancellationToken cancellationToken)
+    public async Task<bool> HandleCancelScheduleRequest(PatientCancelScheduleMessage? requestMessage, CancellationToken cancellationToken)
     {
         this._logger.LogInformation("Begin handling PatientCancelScheduleMessage");
         if (requestMessage is null)
@@ -291,7 +294,11 @@ public class ScheduleService : IScheduleService
 
         schedule.Status = EScheduleStatus.CANCELED_BY_PATIENT;
         schedule.CancelReason = requestMessage.CancelReason;
-        await this._unitOfWork.ScheduleRepository.CancelScheduleAsync(schedule, cancellationToken);
+
+        if (await this._unitOfWork.ScheduleRepository.CancelScheduleAsync(schedule, cancellationToken) <= 0)
+            throw new InvalidOperationException("Unkown database error");
+        else
+            return true;
     }
     #endregion
 }

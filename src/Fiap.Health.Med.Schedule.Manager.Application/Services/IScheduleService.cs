@@ -18,6 +18,6 @@ public interface IScheduleService
     Task<Result> RequestScheduleToPatientAsync(PatientScheduleRequestDto scheduleData, CancellationToken ct);
     Task<Result> RequestCancelScheduleAsync(CancelScheduleRequestDto cancelData, CancellationToken ct);
     Task HandleCreateAsync(CreateScheduleMessage? deserialize, CancellationToken cancellationToken);
-    Task HandlePatientRequesSchedule(RequestPatientScheduleMessage? requestMessage, CancellationToken cancellationToken);
-    Task HandleCancelScheduleRequest(PatientCancelScheduleMessage? requestMessage, CancellationToken cancellationToken);
+    Task<bool> HandlePatientRequesSchedule(RequestPatientScheduleMessage? requestMessage, CancellationToken cancellationToken);
+    Task<bool> HandleCancelScheduleRequest(PatientCancelScheduleMessage? requestMessage, CancellationToken cancellationToken);
 }
