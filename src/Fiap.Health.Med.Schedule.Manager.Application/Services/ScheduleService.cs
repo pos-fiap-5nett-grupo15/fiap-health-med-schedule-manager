@@ -124,7 +124,9 @@ public class ScheduleService : IScheduleService
 
         var doctorSchedules = await this.GetScheduleByAsync(foundSchedule.DoctorId, foundSchedule.ScheduleTime, cancellationToken);
         foundSchedule.ScheduleTime = updateScheduleData.ScheduleTime;
+        foundSchedule.Price = updateScheduleData.Price;
         foundSchedule.Status = new EScheduleStatus[] { EScheduleStatus.PENDING_CONFIRMATION, EScheduleStatus.CONFIRMED }.Contains(foundSchedule.Status) ? EScheduleStatus.PENDING_CONFIRMATION : EScheduleStatus.AVAILABLE;
+        foundSchedule.UpdatedAt = DateTime.Now;
 
         if (doctorSchedules is not null)
         {
@@ -276,6 +278,7 @@ public class ScheduleService : IScheduleService
 
         schedule.PatientId = requestMessage.PatientId;
         schedule.Status = EScheduleStatus.PENDING_CONFIRMATION;
+        schedule.UpdatedAt = DateTime.Now;
         if (await this._unitOfWork.ScheduleRepository.ScheduleToPatientAsync(schedule, cancellationToken) <= 0)
             throw new InvalidOperationException("Unkown database error");
         else
@@ -294,7 +297,7 @@ public class ScheduleService : IScheduleService
 
         schedule.Status = EScheduleStatus.CANCELED_BY_PATIENT;
         schedule.CancelReason = requestMessage.CancelReason;
-
+        schedule.UpdatedAt = DateTime.Now;
         if (await this._unitOfWork.ScheduleRepository.CancelScheduleAsync(schedule, cancellationToken) <= 0)
             throw new InvalidOperationException("Unkown database error");
         else

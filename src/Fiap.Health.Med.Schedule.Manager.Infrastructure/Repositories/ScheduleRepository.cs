@@ -37,14 +37,14 @@ public class ScheduleRepository : IScheduleRepository
         var result = await this._database.Connection.QueryAsync<Domain.Models.Schedule>(query, new { DoctorId = doctorId });
         return result;
     }
-    
+
 
     public async Task<(Domain.Models.Schedule?, string)> GetScheduleByIdAndDoctorIdAsync(long scheduleId, int doctorId, CancellationToken ct)
     {
         try
         {
             var query = @$"SELECT
-                                DoctorId, PatientId, CreatedAt, UpdatedAt, ScheduleTime, Status
+                                *
                             FROM Schedule.Schedule 
                             WHERE Id = {scheduleId}
                             AND {nameof(Domain.Models.Schedule.DoctorId)} = {doctorId}";
@@ -75,8 +75,8 @@ public class ScheduleRepository : IScheduleRepository
     }
     public async Task<int> CreatePendingScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
     {
-        var query = @"INSERT INTO Schedule.Schedule (DoctorId, PatientId, CreatedAt, UpdatedAt, ScheduleTime, Status)
-                      VALUES (@DoctorId, @PatientId, @CreatedAt, @UpdatedAt, @ScheduleTime, @Status);
+        var query = @"INSERT INTO Schedule.Schedule (DoctorId, PatientId, CreatedAt, UpdatedAt, ScheduleTime, Status, Price)
+                      VALUES (@DoctorId, @PatientId, @CreatedAt, @UpdatedAt, @ScheduleTime, @Status, @Price);
                       SELECT SCOPE_IDENTITY();";
 
         return (await _database.Connection.ExecuteScalarAsync<int>(query, schedule));
@@ -90,7 +90,7 @@ public class ScheduleRepository : IScheduleRepository
         var result =
             await _database.Connection.QueryAsync<Domain.Models.Schedule>(query,
                 param: new { ScheduleId = scheduleId });
-        
+
         return result.FirstOrDefault();
     }
     public async Task<(bool, string)> DeleteScheduleStatusAsync(long scheduleId, CancellationToken ct)
@@ -119,7 +119,9 @@ public class ScheduleRepository : IScheduleRepository
         var query = @$"UPDATE Schedule.Schedule 
                        SET
                         {nameof(Domain.Models.Schedule.Status)} = @Status,
-                        {nameof(Domain.Models.Schedule.ScheduleTime)} = @ScheduleTime
+                        {nameof(Domain.Models.Schedule.ScheduleTime)} = @ScheduleTime,
+                        {nameof(Domain.Models.Schedule.Price)} = @Price,
+                        {nameof(Domain.Models.Schedule.UpdatedAt)} = @UpdatedAt
                        WHERE Id = @Id";
         return await _database.Connection.ExecuteAsync(query, schedule);
     }
@@ -129,7 +131,8 @@ public class ScheduleRepository : IScheduleRepository
         var query = @$"UPDATE Schedule.Schedule 
                        SET
                         {nameof(Domain.Models.Schedule.PatientId)} = @PatientId,
-                        {nameof(Domain.Models.Schedule.Status)} = @Status
+                        {nameof(Domain.Models.Schedule.Status)} = @Status,
+                        {nameof(Domain.Models.Schedule.UpdatedAt)} = @UpdatedAt
                        WHERE Id = @Id";
 
         return await _database.Connection.ExecuteAsync(query, schedule);
@@ -147,7 +150,8 @@ public class ScheduleRepository : IScheduleRepository
         var query = $@"UPDATE Schedule.Schedule 
                        SET
                         {nameof(Domain.Models.Schedule.Status)} = @Status,
-                        {nameof(Domain.Models.Schedule.CancelReason)} = @CancelReason
+                        {nameof(Domain.Models.Schedule.CancelReason)} = @CancelReason,
+                        {nameof(Domain.Models.Schedule.UpdatedAt)} = @UpdatedAt
                        WHERE Id = @Id";
 
         return await _database.Connection.ExecuteAsync(query, schedule);

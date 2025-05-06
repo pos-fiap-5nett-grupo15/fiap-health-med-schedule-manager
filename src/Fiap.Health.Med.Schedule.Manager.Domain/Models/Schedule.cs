@@ -7,6 +7,7 @@ public class Schedule
     public long Id { get; set; }
     public int DoctorId { get; set; }
     public int PatientId { get; set; }
+    public float Price { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public DateTime ScheduleTime { get; set; }
