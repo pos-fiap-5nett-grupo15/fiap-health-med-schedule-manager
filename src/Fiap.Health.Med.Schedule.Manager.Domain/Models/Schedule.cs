@@ -17,6 +17,7 @@ public class Schedule
     {
         if (dbModel == null) throw new ArgumentNullException(nameof(dbModel));
 
+        if (dbModel.Id == this.Id) return false;
 
         if (
             (
