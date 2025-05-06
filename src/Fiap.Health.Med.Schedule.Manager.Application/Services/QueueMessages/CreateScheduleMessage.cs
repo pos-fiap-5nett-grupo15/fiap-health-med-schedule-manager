@@ -1,4 +1,4 @@
-namespace Fiap.Health.Med.Schedule.Manager.Application.Services;
+namespace Fiap.Health.Med.Schedule.Manager.Application.Services.QueueMessages;
 
 public class CreateScheduleMessage
 {
@@ -6,7 +6,7 @@ public class CreateScheduleMessage
 
     public CreateScheduleMessage(int id)
     {
-        this.Id = id;
+        Id = id;
         
     }
 }

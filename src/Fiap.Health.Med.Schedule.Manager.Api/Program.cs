@@ -11,19 +11,19 @@ internal class Program
 
         var producerSettings = new ProducerSettings();
         builder.Configuration.GetSection("ProducerSettings").Bind(producerSettings);
-        
+
         builder.Services.AddSingleton(producerSettings);
         builder.Services.AddSingleton<IProducerSettings>(producerSettings);
-        
+
         //builder.Services.AddSingleton(new RabbitMqConnector(consumerSettings));
-        
+
         var startup = new Startup(builder.Configuration);
         startup.ConfigureServices(builder.Services);
-        
+
         builder.Services.Migrations(builder.Configuration);
-        
+
         var app = builder.Build();
-        startup.Configure(app,app.Environment);
+        startup.Configure(app, app.Environment);
         app.Run();
     }
 }

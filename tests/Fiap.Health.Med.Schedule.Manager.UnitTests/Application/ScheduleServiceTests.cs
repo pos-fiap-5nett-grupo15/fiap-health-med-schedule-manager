@@ -1,6 +1,7 @@
 ﻿using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Doctor.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Patient;
 using Fiap.Health.Med.Schedule.Manager.Application.Services;
+using Fiap.Health.Med.Schedule.Manager.Application.Services.QueueMessages;
 using Fiap.Health.Med.Schedule.Manager.Domain.Enum;
 using Fiap.Health.Med.Schedule.Manager.Domain.Interfaces;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.Settings;
@@ -264,7 +265,6 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             result.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
         }
 
-
         [Fact]
         public async Task UpdateSchedule_WhenScheduleDoesNotExist_ShouldReturnFailureWithErrorMessage()
         {
@@ -374,7 +374,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default)).ReturnsAsync((Domain.Models.Schedule?)null);
 
             //act
-            var result = await _target.ScheduleToPatientAsync(request, default);
+            var result = await _target.RequestScheduleToPatientAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -399,7 +399,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            });
 
             //act
-            var result = await _target.ScheduleToPatientAsync(request, default);
+            var result = await _target.RequestScheduleToPatientAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -407,14 +407,10 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
         }
 
         [Fact]
-        public async Task ScheduleToPatient_WhenRequestDataIsCorrect_ShouldReturnSuccess()
+        public async Task HandlePatientRequestSchedule_WhenRequestDataIsCorrect_ShouldPass()
         {
             //set
-            var request = new PatientScheduleRequestDto()
-            {
-                ScheduleId = 1,
-                PatientId = 1
-            };
+            var request = new RequestPatientScheduleMessage(1, 1);
 
             _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
                            .ReturnsAsync(new Domain.Models.Schedule()
@@ -427,10 +423,45 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            .ReturnsAsync(1);
 
             //act
-            var result = await _target.ScheduleToPatientAsync(request, default);
+            var response = await _target.HandlePatientRequesSchedule(request, default);
 
             //assert
-            Assert.True(result.IsSuccess);
+            Assert.True(response);
+        }
+
+        [Fact]
+        public async Task HandlePatientRequestSchedule_WhenScheduleDoesNotExists_ShouldReturnFailure()
+        {
+            //set
+            var request = new RequestPatientScheduleMessage(1, 1);
+
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
+                           .ReturnsAsync((Domain.Models.Schedule?)null);
+
+            //act
+            var act = async () => await _target.HandlePatientRequesSchedule(request, default);
+
+            //assert
+            await act.Should().ThrowAsync<NullReferenceException>();
+        }
+
+        [Fact]
+        public async Task HandlePatientRequestSchedule_WhenIsNotAvailable_ShouldReturnFailure()
+        {
+            //set
+            var request = new RequestPatientScheduleMessage(1, 1);
+
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
+                           .ReturnsAsync(new Domain.Models.Schedule
+                           {
+                               Status = EScheduleStatus.CONFIRMED
+                           });
+
+            //act
+            var act = async () => await _target.HandlePatientRequesSchedule(request, default);
+
+            //assert
+            await act.Should().ThrowAsync<InvalidOperationException>();
         }
 
         [Fact]
@@ -446,7 +477,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default)).ReturnsAsync((Domain.Models.Schedule?)null);
 
             //act
-            var result = await _target.CancelScheduleAsync(request, default);
+            var result = await _target.RequestCancelScheduleAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -470,7 +501,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            });
 
             //act
-            var result = await _target.CancelScheduleAsync(request, default);
+            var result = await _target.RequestCancelScheduleAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -495,7 +526,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            });
 
             //act
-            var result = await _target.CancelScheduleAsync(request, default);
+            var result = await _target.RequestCancelScheduleAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -521,7 +552,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
                            });
 
             //act
-            var result = await _target.CancelScheduleAsync(request, default);
+            var result = await _target.RequestCancelScheduleAsync(request, default);
 
             //assert
             Assert.False(result.IsSuccess);
@@ -529,15 +560,11 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
         }
 
         [Fact]
-        public async Task CancelSchedule_WhenRequestDataIsCorrect_ShouldReturnFailure()
+        public async Task HandleCancelScheduleRequest_WhenRequestDataIsCorrect_ShouldPass()
         {
             //set
-            var request = new CancelScheduleRequestDto()
-            {
-                ScheduleId = 1,
-                PatientId = 1,
-                Reason = "Motivo de cancelamento"
-            };
+            var request = new PatientCancelScheduleMessage(It.IsAny<long>(), It.IsAny<string>());
+
             _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
                            .ReturnsAsync(new Domain.Models.Schedule
                            {
@@ -549,10 +576,26 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             _unitOfWorkMock.Setup(x => x.ScheduleRepository.CancelScheduleAsync(It.IsAny<Domain.Models.Schedule>(), default)).ReturnsAsync(1);
 
             //act
-            var result = await _target.CancelScheduleAsync(request, default);
+            var result = await _target.HandleCancelScheduleRequest(request, default);
 
             //assert
-            Assert.True(result.IsSuccess);
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task HandleCancelScheduleRequest_WhenScheduleDoesNotExist_ShouldReturnFailure()
+        {
+            //set
+            var request = new PatientCancelScheduleMessage(It.IsAny<long>(), It.IsAny<string>());
+
+            _unitOfWorkMock.Setup(x => x.ScheduleRepository.GetScheduleByIdAsync(It.IsAny<long>(), default))
+                           .ReturnsAsync((Domain.Models.Schedule?)null);
+
+            //act
+            var act = async () => await _target.HandleCancelScheduleRequest(request, default);
+
+            //assert
+            await act.Should().ThrowAsync<NullReferenceException>();
         }
     }
 
