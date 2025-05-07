@@ -19,6 +19,7 @@ variables:
   imageRepository: $(_imageRepository)
   containerRegistry: $(_containerRegistry)
   dockerfilePath: $(System.DefaultWorkingDirectory)/infrastructure/docker/api/Dockerfile
+  k8sPathName: infrastructure/k8s/api/deployment.yaml
 
 stages:
 - stage: Preflight
@@ -78,3 +79,27 @@ stages:
         tags: |
           $(tag)
           latest
+
+- stage: Deploy
+  displayName: Deploy Stage
+  jobs:
+  - job: DeployMicrosservice
+    displayName: Deploy Get API Microservice to AKS
+    steps:
+      - script: ls $(System.DefaultWorkingDirectory)/k8s
+        displayName: "Check folder $(System.DefaultWorkingDirectory)"
+      - script: | 
+          cat $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_NAMESPACE/$(kubernetesNamespace)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_CONTAINER_REGISTRY/$(containerRegistry)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_IMAGE_REPOSITORY/$(imageRepository)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_TAG/$(tag)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+        displayName: 'Replace variables in YAML'
+      - task: kubernetes@1
+        displayName: "Apply Deployment YAML"
+        inputs:
+          connectionType: 'Kubernetes Service Connection'
+          kubernetesServiceEndpoint: $(kubernetesServiceEndpoint)
+          namespace: $(kubernetesNamespace)
+          command: apply
+          arguments: -f $(System.DefaultWorkingDirectory)/$(k8sPathName)
