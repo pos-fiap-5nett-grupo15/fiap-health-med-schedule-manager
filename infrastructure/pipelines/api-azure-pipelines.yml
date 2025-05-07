@@ -20,6 +20,7 @@ variables:
   containerRegistry: $(_containerRegistry)
   dockerfilePath: $(System.DefaultWorkingDirectory)/infrastructure/docker/api/Dockerfile
   k8sPathName: infrastructure/k8s/api/deployment.yaml
+  kubernetesServiceEndpoint: $(_kubernetesServiceEndpoint)
 
 stages:
 - stage: Preflight
