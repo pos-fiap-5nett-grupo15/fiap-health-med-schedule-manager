@@ -54,6 +54,32 @@ stages:
       inputs:
         command: 'test'
         projects: '$(System.DefaultWorkingDirectory)/tests/Fiap.Health.Med.Schedule.Manager.UnitTests/Fiap.Health.Med.Schedule.Manager.UnitTests.csproj'
+- stage: Build
+  displayName: Build and push stage
+  dependsOn: Preflight
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: |
+          echo Show ws files.
+          echo $(ls)
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        buildContext: $(System.DefaultWorkingDirectory)
+        tags: |
+          $(tag)
+          latest
+          
 - stage: Deploy
   displayName: Deploy Stage
   jobs:
