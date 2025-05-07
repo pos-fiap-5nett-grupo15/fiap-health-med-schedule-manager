@@ -25,6 +25,8 @@ spec:
           value: "http://+:8081"
         - name: ASPNETCORE_ENVIRONMENT
           value: "Development"
+        - name: ProducerSettings__Host
+          value: rabbitmq-service
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:
