@@ -64,9 +64,60 @@ kubectl get nodes
 ```
 Isso deve retornar informações sobre o nó do Minikube.
 
+Outros comandos comumente usados são os seguintes:
+
+```shell
+    minikube status
+    minikube stop
+    minikube start
+```
+
+Onde o próprio nome do comando já diz o que é feito.
+
+#### Como adicionar o ACR no minikube
+
+Using a Private Registry
+**GCR/ECR/ACR/Docker**: minikube has an addon, registry-creds which maps credentials into minikube to support pulling from Google Container Registry (GCR), Amazon’s EC2 Container Registry (ECR), Azure Container Registry (ACR), and Private Docker registries. You will need to run minikube addons configure registry-creds and minikube addons enable registry-creds to get up and running. An example of this is below:
+
+```shell
+$ minikube addons configure registry-creds
+Do you want to enable AWS Elastic Container Registry? [y/n]: n
+
+Do you want to enable Google Container Registry? [y/n]: y
+-- Enter path to credentials (e.g. /home/user/.config/gcloud/application_default_credentials.json):/home/user/.config/gcloud/application_default_credentials.json
+
+Do you want to enable Docker Registry? [y/n]: n
+
+Do you want to enable Azure Container Registry? [y/n]: n
+registry-creds was successfully configured
+$ minikube addons enable registry-creds
+```
+docker login -u minikubetoken -p oNHiUIToqGRbBCDOhHInRJuSJhMpFqB9LtFXA/mijf+ACRDZeNbi fiapacrhackathon.azurecr.io
 
 
+az ad sp create-for-rbac --name <service-principal-name> --role acrpull --scopes /subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ContainerRegistry/registries/<acr-name>
 
+Para criar a secret via kubectl:
+```shell
+kubectl create secret docker-registry acr-secret \
+  --docker-server=fiapacrhackathon.azurecr.io \
+  --docker-username=minikubetoken \
+  --docker-password=oNHiUIToqGRbBCDOhHInRJuSJhMpFqB9LtFXA/mijf+ACRDZeNbi \
+  --namespace=hk
+```
+
+agora é só colocar no deployment seguindo o exemplo abaixo:
+
+```yaml
+spec:
+  containers:
+  - name: myapp
+    image: <acr-name>.azurecr.io/myapp:latest
+  imagePullSecrets:
+  - name: acr-secret
+  ```
+  
+  
 # Introduction 
 TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
 
