@@ -27,6 +27,8 @@ spec:
           value: "Development"
         - name: ProducerSettings__Host
           value: rabbitmq-service
+        - name: ConsumerSettings__Host
+          value: rabbitmq-service
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:
