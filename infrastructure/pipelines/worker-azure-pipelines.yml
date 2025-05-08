@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - feat/pipelines
+      - feat/kubernetes
   paths:
     exclude:
       - README.md
@@ -19,6 +19,9 @@ variables:
   imageRepository: $(_imageRepository)
   containerRegistry: $(_containerRegistry)
   dockerfilePath: $(System.DefaultWorkingDirectory)/infrastructure/docker/worker/Dockerfile
+  k8sPathName: infrastructure/k8s/worker/deployment.yaml
+  kubernetesServiceEndpoint: $(_kubernetesServiceEndpoint)
+
 
 stages:
 - stage: Preflight
@@ -78,3 +81,27 @@ stages:
         tags: |
           $(tag)
           latest
+
+- stage: Deploy
+  displayName: Deploy Stage
+  jobs:
+  - job: DeployMicroservice
+    displayName: Deploy Schedule Worker Microservice to AKS
+    steps:
+      - script: ls $(System.DefaultWorkingDirectory)/infrastructure/k8s/worker/
+        displayName: "Check folder $(System.DefaultWorkingDirectory)"
+      - script: | 
+          cat $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_NAMESPACE/$(kubernetesNamespace)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_CONTAINER_REGISTRY/$(containerRegistry)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_IMAGE_REPOSITORY/$(imageRepository)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_TAG/$(tag)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+        displayName: 'Replace variables in YAML'
+      - task: kubernetes@1
+        displayName: "Apply Deployment YAML"
+        inputs:
+          connectionType: 'Kubernetes Service Connection'
+          kubernetesServiceEndpoint: $(kubernetesServiceEndpoint)
+          namespace: $(kubernetesNamespace)
+          command: apply
+          arguments: -f $(System.DefaultWorkingDirectory)/$(k8sPathName)
