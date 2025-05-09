@@ -6,8 +6,8 @@ trigger:
     exclude:
       - README.md
       - infrastructure/pipelines/worker-azure-pipelines.yml
-      - infrastructure/docker/worker/Dockerfile
-      - src/Fiap.Health.Med.Schedule.Manager.Worker/**
+      - infrastructure/docker/api/Dockerfile
+      - src/Fiap.Health.Med.Schedule.Manager.Api/**
 
 resources:
 - repo: self
@@ -18,13 +18,14 @@ variables:
   dockerRegistryServiceConnection: $(_dockerRegistryServiceConnection)
   imageRepository: $(_imageRepository)
   containerRegistry: $(_containerRegistry)
-  dockerfilePath: $(System.DefaultWorkingDirectory)/infrastructure/docker/api/Dockerfile
-  k8sPathName: infrastructure/k8s/api/deployment.yaml
+  dockerfilePath: $(System.DefaultWorkingDirectory)/infrastructure/docker/worker/Dockerfile
+  k8sPathName: infrastructure/k8s/worker/deployment.yaml
   kubernetesServiceEndpoint: $(_kubernetesServiceEndpoint)
+
 
 stages:
 - stage: Preflight
-  displayName: Build and Test API
+  displayName: Build and Test Worker
   jobs:
   - job: Build
     displayName: Build
@@ -43,7 +44,7 @@ stages:
     - task: DotNetCoreCLI@2
       inputs:
         command: 'build'
-        projects: '$(System.DefaultWorkingDirectory)/src/Fiap.Health.Med.Schedule.Manager.Api/Fiap.Health.Med.Schedule.Manager.Api.csproj'
+        projects: '$(System.DefaultWorkingDirectory)/src/Fiap.Health.Med.Schedule.Manager.Worker/Fiap.Health.Med.Schedule.Manager.Worker.csproj'
   - job: Tests
     displayName: Tests
     dependsOn: Build
@@ -54,6 +55,7 @@ stages:
       inputs:
         command: 'test'
         projects: '$(System.DefaultWorkingDirectory)/tests/Fiap.Health.Med.Schedule.Manager.UnitTests/Fiap.Health.Med.Schedule.Manager.UnitTests.csproj'
+
 - stage: Build
   displayName: Build and push stage
   dependsOn: Preflight
@@ -84,9 +86,9 @@ stages:
   displayName: Deploy Stage
   jobs:
   - job: DeployMicroservice
-    displayName: Deploy Schedule API Microservice to AKS
+    displayName: Deploy Schedule Worker Microservice to AKS
     steps:
-      - script: ls $(System.DefaultWorkingDirectory)/infrastructure/k8s/api/
+      - script: ls $(System.DefaultWorkingDirectory)/infrastructure/k8s/worker/
         displayName: "Check folder $(System.DefaultWorkingDirectory)"
       - script: | 
           cat $(System.DefaultWorkingDirectory)/$(k8sPathName)

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schedule-worker
+  namespace: PLACEHOLDER_NAMESPACE
+  labels:
+    app: schedule-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schedule-worker
+  template:
+    metadata:
+      labels:
+        app: schedule-worker
+    spec:
+      containers:
+      - name: schedule-worker
+        image: PLACEHOLDER_CONTAINER_REGISTRY/PLACEHOLDER_IMAGE_REPOSITORY:PLACEHOLDER_TAG
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ASPNETCORE_URLS
+          value: "http://+:8081"
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: ProducerSettings__Host
+          value: rabbitmq-service
+        - name: ConsumerSettings__Host
+          value: rabbitmq-service
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: db-connection
+              key: ConnectionStrings__DefaultConnection
+        - name: ConnectionStrings__DatabaseDllConnection
+          valueFrom:
+            secretKeyRef:
+              name: db-connection
+              key: ConnectionStrings__DatabaseDllConnection
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schedule-worker-service
+  namespace: PLACEHOLDER_NAMESPACE
+spec:
+  selector:
+    app: schedule-worker
+  ports:
+    - protocol: TCP
+      port: 8090
+      targetPort: 8081
+  type: ClusterIP

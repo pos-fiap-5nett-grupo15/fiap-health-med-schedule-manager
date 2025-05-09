@@ -6,7 +6,7 @@ using RabbitMQ.Client;
 
 namespace Fiap.Health.Med.Schedule.Manager.Worker;
 
-internal class Program
+internal class Program 
 {
     private static void Main(string[] args)
     {
