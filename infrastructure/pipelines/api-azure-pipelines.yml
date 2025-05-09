@@ -79,12 +79,12 @@ stages:
         tags: |
           $(tag)
           latest
-          
+
 - stage: Deploy
   displayName: Deploy Stage
   jobs:
-  - job: DeployMicrosservice
-    displayName: Deploy Get API Microservice to AKS
+  - job: DeployMicroservice
+    displayName: Deploy Schedule API Microservice to AKS
     steps:
       - script: ls $(System.DefaultWorkingDirectory)/infrastructure/k8s/api/
         displayName: "Check folder $(System.DefaultWorkingDirectory)"

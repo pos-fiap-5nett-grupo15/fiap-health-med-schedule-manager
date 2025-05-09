@@ -115,7 +115,7 @@ spec:
     image: <acr-name>.azurecr.io/myapp:latest
   imagePullSecrets:
   - name: acr-secret
-  ```
+```
   
   
 # Introduction 
