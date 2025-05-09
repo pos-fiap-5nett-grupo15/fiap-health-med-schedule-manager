@@ -48,6 +48,6 @@ spec:
     app: schedule-app
   ports:
     - protocol: TCP
-      port: 8090
+      port: 8091
       targetPort: 8081
   type: ClusterIP
