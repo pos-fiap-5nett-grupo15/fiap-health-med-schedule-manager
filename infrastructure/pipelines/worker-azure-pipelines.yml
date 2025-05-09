@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - feat/kubernetes
+      - develop
   paths:
     exclude:
       - README.md
