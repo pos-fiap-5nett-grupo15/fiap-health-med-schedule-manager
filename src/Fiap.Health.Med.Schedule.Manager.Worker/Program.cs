@@ -14,27 +14,27 @@ internal class Program
 
         var consumerSettings = new ConsumerSettings();
         builder.Configuration.GetSection("ConsumerSettings").Bind(consumerSettings);
-        
+
         builder.Services.AddSingleton(consumerSettings);
 
-        
+
         var producerSettings = new ProducerSettings();
         builder.Configuration.GetSection("ProducerSettings").Bind(producerSettings);
-        
+
         builder.Services.AddSingleton(producerSettings);
         builder.Services.AddSingleton<IProducerSettings>(producerSettings);
-        
+
         builder.Services.AddSingleton(new RabbitMqConnector(consumerSettings));
-        
+
         builder.Services.AddScoped<IHealthDatabase, HealthDatabase>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-        
-        
+
+
         builder.Services.AddScoped<IScheduleService, ScheduleService>();
         builder.Services.AddHostedService<Producers.Worker>();
-        
+
         var host = builder.Build();
-        host.Run(); 
+        host.Run();
     }
 }
 
