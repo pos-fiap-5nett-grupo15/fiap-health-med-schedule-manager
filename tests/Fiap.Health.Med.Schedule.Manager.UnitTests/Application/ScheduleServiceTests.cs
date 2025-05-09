@@ -57,6 +57,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
         {
             //set
             var model = ModelHelper.CreateSchedule();
+            model.Id = 2;
 
             var dbModels = new List<Domain.Models.Schedule>()
             {
@@ -324,7 +325,7 @@ namespace Fiap.Health.Med.Schedule.Manager.UnitTests.Application
             {
                 new Domain.Models.Schedule()
                 {
-                    Id = 1,
+                    Id = 4,
                     Status = EScheduleStatus.PENDING_CONFIRMATION,
                     ScheduleTime = DateTime.Now.AddHours(3),
                     CreatedAt = DateTime.Now,
