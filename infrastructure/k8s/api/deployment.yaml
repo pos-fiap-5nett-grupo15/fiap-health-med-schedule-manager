@@ -20,6 +20,20 @@ spec:
         image: PLACEHOLDER_CONTAINER_REGISTRY/PLACEHOLDER_IMAGE_REPOSITORY:PLACEHOLDER_TAG
         ports:
         - containerPort: 8081
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet: 
+            path: /health/ready
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
         env:
         - name: ASPNETCORE_URLS
           value: "http://+:8081"
