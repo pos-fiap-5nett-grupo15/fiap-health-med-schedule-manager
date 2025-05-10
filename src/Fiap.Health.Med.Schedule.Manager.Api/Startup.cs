@@ -1,5 +1,6 @@
 using Fiap.Health.Med.Schedule.Manager.CrossCutting;
 using Fiap.Health.Med.Schedule.Manager.Infrastructure.Settings;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IWebHostEnvironment;
 
@@ -25,7 +26,7 @@ internal class Startup
         services.AddDataServices();
         services.AddServices();
         services.AddRabbitMqService();
-        services.AddHealthChecks();
+
     }
 
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -47,6 +48,14 @@ internal class Startup
         {
             endpoints.MapControllers();
             endpoints.MapHealthChecks("/health");
+            endpoints.MapHealthChecks("/health/live", new HealthCheckOptions()
+            {
+                Predicate = _ => true
+            });
+            endpoints.MapHealthChecks("/health/ready", new HealthCheckOptions()
+            {
+                Predicate = check => check.Tags.Contains("ready")
+            });
         });
         app.UseHttpsRedirection();
     }
