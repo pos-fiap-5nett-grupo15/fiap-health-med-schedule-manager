@@ -45,6 +45,7 @@ internal class Startup
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
+            endpoints.MapHealthChecks("/health");
         });
         app.UseHttpsRedirection();
     }
