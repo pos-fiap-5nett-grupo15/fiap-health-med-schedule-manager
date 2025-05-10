@@ -25,6 +25,7 @@ internal class Startup
         services.AddDataServices();
         services.AddServices();
         services.AddRabbitMqService();
+        services.AddHealthChecks();
     }
 
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
