@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using Fiap.Health.Med.Schedule.Manager.Application.Common;
+using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Doctor.CreateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Doctor.UpdateSchedule;
 using Fiap.Health.Med.Schedule.Manager.Application.DTOs.Patient;
 using Fiap.Health.Med.Schedule.Manager.Application.Services.QueueMessages;
@@ -42,11 +43,21 @@ public class ScheduleService : IScheduleService
         return await this._unitOfWork.ScheduleRepository.GetAsync(cancellationToken);
     }
 
-    public async Task<Result<int>> RequestCreateScheduleAsync(Domain.Models.Schedule schedule, CancellationToken cancellationToken)
+    public async Task<Result<int>> RequestCreateScheduleAsync(CreateScheduleRequest createScheduleRequest, CancellationToken cancellationToken)
     {
         try
         {
-            schedule.Status = EScheduleStatus.UNDEFINED;
+            var schedule = new Domain.Models.Schedule
+            {
+                DoctorId = createScheduleRequest.DoctorId,
+                PatientId = 0,
+                Price = createScheduleRequest.Price,
+                ScheduleTime = createScheduleRequest.ScheduleTime,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = null,
+                Status = EScheduleStatus.UNDEFINED
+            };
+
             var id = await this._unitOfWork.ScheduleRepository.CreatePendingScheduleAsync(schedule, cancellationToken);
             await PublishOnQueueAsync(new CreateScheduleMessage(id), this._producer.RoutingKeys.CreateSchedule, cancellationToken);
             return Result<int>.Success(HttpStatusCode.Created, id);
@@ -255,7 +266,7 @@ public class ScheduleService : IScheduleService
 
         var hasAnyOverlap = dbModels.Select(x => schedule.IsOverlappedBy(x)).Any(x => x == true);
 
-        var newStatus = hasAnyOverlap ? EScheduleStatus.REFUSED : EScheduleStatus.CONFIRMED;
+        var newStatus = hasAnyOverlap ? EScheduleStatus.REFUSED : EScheduleStatus.AVAILABLE;
         this._logger.LogInformation($"CreateScheduleMessage has been {newStatus}");
 
         await this._unitOfWork.ScheduleRepository.UpdatescheduleStatusAsync(schedule.Id, newStatus, cancellationToken);
