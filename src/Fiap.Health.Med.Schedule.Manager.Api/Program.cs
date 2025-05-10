@@ -17,6 +17,7 @@ internal class Program
 
         //builder.Services.AddSingleton(new RabbitMqConnector(consumerSettings));
 
+        builder.Services.AddHealthChecks().AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), tags: new[] { "ready" });
         var startup = new Startup(builder.Configuration);
         startup.ConfigureServices(builder.Services);
 
