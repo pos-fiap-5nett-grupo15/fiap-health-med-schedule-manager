@@ -22,8 +22,8 @@ spec:
             matchExpressions:
             - key: app
               operator: In
-              value: schedule-app
-          topologyKey: "kubernetes.io/hostname"
+              values: schedule-app
+            topologyKey: "kubernetes.io/hostname"
       containers:
       - name: schedule-app
         image: PLACEHOLDER_CONTAINER_REGISTRY/PLACEHOLDER_IMAGE_REPOSITORY:PLACEHOLDER_TAG
