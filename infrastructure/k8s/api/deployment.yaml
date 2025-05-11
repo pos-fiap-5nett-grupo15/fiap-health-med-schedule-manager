@@ -15,11 +15,27 @@ spec:
       labels:
         app: schedule-app
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              value: schedule-app
+          topologyKey: "kubernetes.io/hostname"
       containers:
       - name: schedule-app
         image: PLACEHOLDER_CONTAINER_REGISTRY/PLACEHOLDER_IMAGE_REPOSITORY:PLACEHOLDER_TAG
         ports:
         - containerPort: 8081
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "256Mi"
+          limits:
+            cpu: "100m"
+            memory: "512Mi"
         livenessProbe:
           httpGet:
             path: /health/live
@@ -65,3 +81,23 @@ spec:
       port: 8091
       targetPort: 8081
   type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: schedule-app-hpa
+  namespace: PLACEHOLDER_NAMESPACE
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: schedule-app
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 30
