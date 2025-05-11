@@ -7,6 +7,7 @@ trigger:
       - README.md
       - infrastructure/pipelines/worker-azure-pipelines.yml
       - infrastructure/docker/worker/Dockerfile
+      - infrastructure/k8s/worker/
       - src/Fiap.Health.Med.Schedule.Manager.Worker/**
 
 resources:
