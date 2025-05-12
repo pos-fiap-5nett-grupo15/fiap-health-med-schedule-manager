@@ -1,0 +1,80 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8FAC6F0E-1FBE-4658-8F5E-33919C6DDDDD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Health.Med.Schedule.Manager.Application", "src\Fiap.Health.Med.Schedule.Manager.Application\Fiap.Health.Med.Schedule.Manager.Application.csproj", "{0C6F0A41-5F86-4CE7-9424-271228362E99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Health.Med.Schedule.Manager.CrossCutting", "src\Fiap.Health.Med.Schedule.Manager.CrossCutting\Fiap.Health.Med.Schedule.Manager.CrossCutting.csproj", "{373F31EC-519E-4328-A2A1-B80FC398BACC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Health.Med.Schedule.Manager.Domain", "src\Fiap.Health.Med.Schedule.Manager.Domain\Fiap.Health.Med.Schedule.Manager.Domain.csproj", "{A0A3C479-3CE7-47FB-8FF6-6A471FA3B26B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Health.Med.Schedule.Manager.Infrastructure", "src\Fiap.Health.Med.Schedule.Manager.Infrastructure\Fiap.Health.Med.Schedule.Manager.Infrastructure.csproj", "{746164CB-069D-4390-B748-7F9E3C61DB52}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Health.Med.Schedule.Manager.Worker", "src\Fiap.Health.Med.Schedule.Manager.Worker\Fiap.Health.Med.Schedule.Manager.Worker.csproj", "{595514E6-9E71-4902-AFB3-7EB4402521E4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{396A15AB-B1E4-460A-8D7C-A36ED36FB7E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Health.Med.Schedule.Manager.UnitTests", "tests\Fiap.Health.Med.Schedule.Manager.UnitTests\Fiap.Health.Med.Schedule.Manager.UnitTests.csproj", "{DDC7924F-7ECD-4CCF-9ACF-8050DAA145EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Health.Med.Schedule.Manager.Api", "src\Fiap.Health.Med.Schedule.Manager.Api\Fiap.Health.Med.Schedule.Manager.Api.csproj", "{CC5DEB1B-77C4-4DBB-9AD1-4EEB14B8CF28}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9F81718F-D3EB-4405-BBF5-FE2BBD8A271E}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0C6F0A41-5F86-4CE7-9424-271228362E99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C6F0A41-5F86-4CE7-9424-271228362E99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C6F0A41-5F86-4CE7-9424-271228362E99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C6F0A41-5F86-4CE7-9424-271228362E99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{373F31EC-519E-4328-A2A1-B80FC398BACC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{373F31EC-519E-4328-A2A1-B80FC398BACC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{373F31EC-519E-4328-A2A1-B80FC398BACC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{373F31EC-519E-4328-A2A1-B80FC398BACC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0A3C479-3CE7-47FB-8FF6-6A471FA3B26B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0A3C479-3CE7-47FB-8FF6-6A471FA3B26B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0A3C479-3CE7-47FB-8FF6-6A471FA3B26B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0A3C479-3CE7-47FB-8FF6-6A471FA3B26B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{746164CB-069D-4390-B748-7F9E3C61DB52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{746164CB-069D-4390-B748-7F9E3C61DB52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{746164CB-069D-4390-B748-7F9E3C61DB52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{746164CB-069D-4390-B748-7F9E3C61DB52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{595514E6-9E71-4902-AFB3-7EB4402521E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{595514E6-9E71-4902-AFB3-7EB4402521E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{595514E6-9E71-4902-AFB3-7EB4402521E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{595514E6-9E71-4902-AFB3-7EB4402521E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDC7924F-7ECD-4CCF-9ACF-8050DAA145EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDC7924F-7ECD-4CCF-9ACF-8050DAA145EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDC7924F-7ECD-4CCF-9ACF-8050DAA145EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDC7924F-7ECD-4CCF-9ACF-8050DAA145EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC5DEB1B-77C4-4DBB-9AD1-4EEB14B8CF28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC5DEB1B-77C4-4DBB-9AD1-4EEB14B8CF28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC5DEB1B-77C4-4DBB-9AD1-4EEB14B8CF28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC5DEB1B-77C4-4DBB-9AD1-4EEB14B8CF28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D6B43C4-659D-40D5-87D9-6BC7CB62E383}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D6B43C4-659D-40D5-87D9-6BC7CB62E383}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D6B43C4-659D-40D5-87D9-6BC7CB62E383}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D6B43C4-659D-40D5-87D9-6BC7CB62E383}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0C6F0A41-5F86-4CE7-9424-271228362E99} = {8FAC6F0E-1FBE-4658-8F5E-33919C6DDDDD}
+		{373F31EC-519E-4328-A2A1-B80FC398BACC} = {8FAC6F0E-1FBE-4658-8F5E-33919C6DDDDD}
+		{A0A3C479-3CE7-47FB-8FF6-6A471FA3B26B} = {8FAC6F0E-1FBE-4658-8F5E-33919C6DDDDD}
+		{746164CB-069D-4390-B748-7F9E3C61DB52} = {8FAC6F0E-1FBE-4658-8F5E-33919C6DDDDD}
+		{595514E6-9E71-4902-AFB3-7EB4402521E4} = {8FAC6F0E-1FBE-4658-8F5E-33919C6DDDDD}
+		{DDC7924F-7ECD-4CCF-9ACF-8050DAA145EC} = {396A15AB-B1E4-460A-8D7C-A36ED36FB7E7}
+		{CC5DEB1B-77C4-4DBB-9AD1-4EEB14B8CF28} = {8FAC6F0E-1FBE-4658-8F5E-33919C6DDDDD}
+	EndGlobalSection
+EndGlobal

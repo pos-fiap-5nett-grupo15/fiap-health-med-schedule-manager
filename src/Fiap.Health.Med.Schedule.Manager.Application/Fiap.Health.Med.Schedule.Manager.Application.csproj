@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Folder Include="Models\" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Domain\Fiap.Health.Med.Schedule.Manager.Domain.csproj" />
+    <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Infrastructure\Fiap.Health.Med.Schedule.Manager.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
+  </ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="FluentValidation" Version="11.11.0" />
+	</ItemGroup>
+</Project>

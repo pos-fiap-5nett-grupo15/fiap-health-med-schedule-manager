@@ -1,0 +1,106 @@
+trigger:
+  branches:
+    include:
+      - develop
+  paths:
+    exclude:
+      - README.md
+      - infrastructure/pipelines/worker-azure-pipelines.yml
+      - infrastructure/docker/worker/Dockerfile
+      - infrastructure/k8s/worker/
+      - src/Fiap.Health.Med.Schedule.Manager.Worker/**
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+  vmImageName: 'ubuntu-latest'
+  dockerRegistryServiceConnection: $(_dockerRegistryServiceConnection)
+  imageRepository: $(_imageRepository)
+  containerRegistry: $(_containerRegistry)
+  dockerfilePath: $(System.DefaultWorkingDirectory)/infrastructure/docker/api/Dockerfile
+  k8sPathName: infrastructure/k8s/api/deployment.yaml
+  kubernetesServiceEndpoint: $(_kubernetesServiceEndpoint)
+
+stages:
+- stage: Preflight
+  displayName: Build and Test API
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: |
+          echo Show ws files.
+          echo $(ls)
+          echo $(ls $(System.DefaultWorkingDirectory)/src)
+          cd $(System.DefaultWorkingDirectory)/src
+          echo $(ls)
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
+        projects: '$(System.DefaultWorkingDirectory)/src/Fiap.Health.Med.Schedule.Manager.Api/Fiap.Health.Med.Schedule.Manager.Api.csproj'
+  - job: Tests
+    displayName: Tests
+    dependsOn: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'test'
+        projects: '$(System.DefaultWorkingDirectory)/tests/Fiap.Health.Med.Schedule.Manager.UnitTests/Fiap.Health.Med.Schedule.Manager.UnitTests.csproj'
+- stage: Build
+  displayName: Build and push stage
+  dependsOn: Preflight
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: |
+          echo Show ws files.
+          echo $(ls)
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        buildContext: $(System.DefaultWorkingDirectory)
+        tags: |
+          $(tag)
+          latest
+
+- stage: Deploy
+  displayName: Deploy Stage
+  jobs:
+  - job: DeployMicroservice
+    displayName: Deploy Schedule API Microservice to AKS
+    steps:
+      - script: ls $(System.DefaultWorkingDirectory)/infrastructure/k8s/api/
+        displayName: "Check folder $(System.DefaultWorkingDirectory)"
+      - script: | 
+          cat $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_NAMESPACE/$(kubernetesNamespace)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_CONTAINER_REGISTRY/$(containerRegistry)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_IMAGE_REPOSITORY/$(imageRepository)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+          sed -i 's/PLACEHOLDER_TAG/$(tag)/g' $(System.DefaultWorkingDirectory)/$(k8sPathName)
+        displayName: 'Replace variables in YAML'
+      - task: kubernetes@1
+        displayName: "Apply Deployment YAML"
+        inputs:
+          connectionType: 'Kubernetes Service Connection'
+          kubernetesServiceEndpoint: $(kubernetesServiceEndpoint)
+          namespace: $(kubernetesNamespace)
+          command: apply
+          arguments: -f $(System.DefaultWorkingDirectory)/$(k8sPathName)

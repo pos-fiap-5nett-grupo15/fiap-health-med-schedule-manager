@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.7" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Application\Fiap.Health.Med.Schedule.Manager.Application.csproj" />
+    <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.CrossCutting\Fiap.Health.Med.Schedule.Manager.CrossCutting.csproj" />
+    <ProjectReference Include="..\Fiap.Health.Med.Schedule.Manager.Domain\Fiap.Health.Med.Schedule.Manager.Domain.csproj" />
+  </ItemGroup>
+  
+
+</Project>
